@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🏆 世界杯预测指北</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <style>
+        body { background-color: #121214; color: #e1e1e6; font-family: system-ui, sans-serif; }
+        .sidebar { background-color: #1a1a1e; border-right: 1px solid #29292e; }
+        .input-dark { background-color: #121214; border: 1px solid #29292e; color: #fff; }
+        .input-dark:focus { border-color: #ff5252; outline: none; }
+        .btn-coral { background-color: #ff5252; transition: background 0.2s; }
+        .btn-coral:hover { background-color: #ff3333; }
+        .divider { border-top: 1px solid #29292e; }
+    </style>
+</head>
+<body class="h-screen flex overflow-hidden">
+
+    <div class="sidebar w-80 p-6 flex flex-col justify-between shrink-0 overflow-y-auto">
+        <div class="space-y-6">
+            <div>
+                <div class="flex items-center gap-2 text-2xl font-bold text-white mb-1">
+                    <span>🏆</span> 世界杯预测指北
+                </div>
+                <div class="text-xs text-gray-500">IP 统一防刷认证系统</div>
+            </div>
+
+        <div class="space-y-3">
+            <div class="text-sm font-semibold text-gray-300 flex items-center gap-1">🔒 账号认证</div>
+            <input type="text" id="username" class="input-dark w-full p-2.5 rounded text-sm" placeholder="请输入用户名">
+            
+            <div class="flex items-center gap-2">
+                <input type="password" id="password" class="input-dark flex-1 p-2.5 rounded text-sm" placeholder="请输入密码">
+                
+                <label class="flex items-center gap-1 text-xs text-gray-400 cursor-pointer select-none bg-[#1a1a1e] p-2.5 rounded border border-[#29292e] whitespace-nowrap">
+                    <input type="checkbox" onchange="togglePassword('password', this)" class="accent-amber-500 cursor-pointer">
+                    <span>显示</span>
+                </label>
+            </div>
+
+            <div class="flex gap-2">
+                <button onclick="handleAuth('/user/register')" class="btn-coral text-white text-sm font-bold py-2.5 px-4 rounded flex-1 cursor-pointer">🚀 注册</button>
+                <button onclick="handleLogin()" class="bg-gray-700 hover:bg-gray-600 text-white text-sm font-bold py-2.5 px-4 rounded flex-1 cursor-pointer">🔑 登录</button>
+            </div>
+            <div id="auth-msg" class="text-xs text-center font-medium"></div>
+        </div>
+
+            <div class="divider"></div>
+
+            <div class="space-y-3">
+                <div class="text-sm font-semibold text-gray-300 flex items-center gap-1">🛠️ 赛事管理后台</div>
+                
+                <div class="flex items-center gap-2">
+                    <input type="password" id="admin-pwd" class="input-dark flex-1 p-2.5 rounded text-sm" placeholder="输入管理员密码解锁">
+                    
+                    <label class="flex items-center gap-1 text-xs text-gray-400 cursor-pointer select-none bg-[#1a1a1e] p-2.5 rounded border border-[#29292e] whitespace-nowrap">
+                        <input type="checkbox" onchange="togglePassword('admin-pwd', this)" class="accent-amber-500 cursor-pointer">
+                        <span>显示</span>
+                    </label>
+                </div>
+                
+                <button onclick="verifyAdmin()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold py-2 w-full rounded cursor-pointer">⚙️ 验证进入后台</button>
+            </div>
+                
+
+                <div id="admin-panel" class="hidden space-y-4 pt-2 bg-[#121214] p-3 rounded border border-[#29292e]">
+                    <div class="text-xs font-bold text-amber-400">【快捷发布新比赛】</div>
+                    <input type="text" id="new-team-a" class="input-dark w-full p-2 rounded text-xs" placeholder="主队（如：阿根廷）">
+                    <input type="text" id="new-team-b" class="input-dark w-full p-2 rounded text-xs" placeholder="客队（如：法国）">
+                    <input type="text" id="new-match-date" class="input-dark w-full p-2 rounded text-xs" placeholder="时间（如：2022Dec26）">
+                    <button onclick="adminAddMatch()" class="bg-green-600 hover:bg-green-700 text-white text-xs font-bold py-1.5 w-full rounded cursor-pointer">➕ 发布比赛</button>
+
+                    <div class="divider"></div>
+
+                    <div class="text-xs font-bold text-amber-400">【录入真实赛果】</div>
+                    <select id="admin-match-select" onchange="updateAdminButtons()" class="input-dark w-full p-2 rounded text-xs"></select>
+
+                    <div class="text-[11px] text-gray-400 mt-1">选择比赛胜者：</div>
+                    <div id="admin-buttons-container" class="flex gap-1.5"></div>
+
+                    <button onclick="adminSetResult()" class="bg-amber-500 hover:bg-amber-600 text-black text-xs font-bold py-2 w-full rounded mt-1">📢 公布赛果结算</button>
+                    <div id="admin-msg" class="text-[11px] text-center font-medium mt-1"></div>
+
+                    <div class="pt-3 border-t border-[#29292e] space-y-2 mt-2">
+                        <div class="text-xs font-bold text-red-400 flex items-center gap-1">❌ 【危险区域：删除比赛】</div>
+                        <select id="admin-delete-select" class="input-dark w-full p-2 rounded text-xs"></select>
+                        <button onclick="deleteMatchFromServer()" class="bg-red-600 hover:bg-red-700 text-white text-xs font-bold py-1.5 w-full rounded mt-1 cursor-pointer transition-all flex items-center justify-center gap-1">
+                            🗑️ 确认从系统彻底删除
+                        </button>
+                        <div id="admin-delete-msg" class="text-[11px] text-center font-medium mt-1"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="divider pt-4 text-xs text-gray-400 mt-4">
+            当前身份：<span id="current-user" class="text-amber-400 font-bold">未登录（游客）</span>
+        </div>
+    </div>
+
+    <div class="flex-1 p-8 overflow-y-auto space-y-8">
+        <div>
+            <h1 class="text-4xl font-extrabold text-white flex items-center gap-3">⚽ 乾坤未定，你我皆是球王</h1>
+            <p class="text-gray-400 mt-2 text-sm">加入预测，和舍友朋友们比一比谁才是真正的懂球帝。</p>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div class="space-y-4">
+                <h2 class="text-xl font-bold text-white flex items-center gap-2">🔮 提交今日预测</h2>
+                <div class="bg-[#1a1a1e] p-5 rounded-lg border border-[#29292e] space-y-4">
+                    <div>
+                        <label class="text-xs text-gray-400 block mb-1">选择比赛场次</label>
+                        <select id="match-select" onchange="updatePredictButtons()" class="input-dark w-full p-2.5 rounded text-sm"></select>
+                    </div>
+                    <div>
+                        <label class="text-xs text-gray-400 block mb-2">选择你心目中的胜者</label>
+                        <div id="predict-buttons-container" class="flex gap-3">
+                            </div>
+                    </div>
+                    <button id="submit-predict-btn" onclick="submitPrediction()" class="btn-coral text-white text-sm font-bold py-2.5 w-full rounded mt-2 cursor-pointer">🎯 提交预测选项</button>
+                    <div id="predict-msg" class="text-xs text-center font-medium"></div>
+                </div>
+            </div>
+
+            <div class="space-y-2 mt-4">
+                <div class="text-xs font-bold text-amber-400 flex items-center gap-1">📊 谁是懂球帝</div>
+                
+                <div class="bg-[#121214] rounded border border-[#29292e] overflow-x-auto">
+                    <table class="w-full text-left border-collapse min-w-[580px]">
+                        <thead>
+                            <tr class="border-b border-[#29292e] text-[11px] text-gray-400 font-semibold bg-[#161619]">
+                                <th class="p-2.5 pl-3">排名 / 玩家</th>
+                                <th class="p-2.5 text-center text-green-400">猜对场次</th>
+                                <th class="p-2.5 text-center text-blue-400">参加场次</th>
+                                <th class="p-2.5 text-center text-gray-400">总场次</th>
+                                <th class="p-2.5 text-center text-yellow-500">未结算</th>
+                                <th class="p-2.5 text-center text-purple-400">参与率</th>
+                                <th class="p-2.5 text-center text-orange-400">正确率</th>
+                            </tr>
+                        </thead>
+                        <tbody id="leaderboard-body" class="text-xs text-gray-300 divide-y divide-[#1f1f23]">
+                            </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let loggedInUser = null;
+        let globalMatches = {};       // 🧠 核心：在前端缓存所有比赛的详情数据
+        let selectedPredictWinner = null; // 存储当前玩家点选的胜队
+        let selectedAdminWinner = null;   // 存储当前管理员点选的真实赛果
+        let myPredictions = {};           // 🎯 新增：用来存当前登录用户的预测历史
+
+        // 🎯 新增：从后端拉取当前用户的预测数据
+        async function loadMyPredictions() {
+            if (!loggedInUser) {
+                myPredictions = {};
+                return;
+            }
+            try {
+                const res = await fetch(`/predict/my/${loggedInUser}`);
+                if (res.ok) {
+                    myPredictions = await res.json();
+                }
+            } catch (e) {
+                console.error("加载个人预测失败", e);
+            }
+        }
+
+        window.onload = function() {
+            loadMatches();
+            loadLeaderboard();
+        }
+
+        // 解锁管理员面板
+        function verifyAdmin() {
+            const pwd = document.getElementById('admin-pwd').value;
+            const panel = document.getElementById('admin-panel');
+            if (pwd === '123456') {
+                panel.classList.remove('hidden');
+                updateAdminButtons(); // 解锁时顺便渲染一下管理员按钮
+                alert('🔑 管理员后台已解锁！');
+            } else {
+                alert('❌ 密码错误！');
+            }
+        }
+
+        function updatePredictButtons() {
+            const matchId = document.getElementById('match-select').value;
+            const container = document.getElementById('predict-buttons-container');
+            const submitBtn = document.getElementById('submit-predict-btn'); // 👈 拿到提交按钮
+            
+            container.innerHTML = '';
+            selectedPredictWinner = null; // 清空点选状态
+
+            if (!matchId || !globalMatches[matchId]) {
+                container.innerHTML = '<span class="text-xs text-gray-500">暂无比赛选项</span>';
+                if (submitBtn) submitBtn.disabled = true;
+                return;
+            }
+
+            const match = globalMatches[matchId];
+
+            // 🎯 核心安全锁：如果该场比赛已经有了真实赛果，直接触发熔断
+            if (match.result) {
+                // 🔍 检查当前用户对这场比赛有没有过预测
+                const myChoice = myPredictions[matchId];
+                let predictText = myChoice ? `（你的预测是：${myChoice}）` : "（你未参与这场预测）";
+
+                container.innerHTML = `<span class="text-xs text-red-400 font-bold flex items-center gap-1">🔒 该赛事已录入真实赛果 [ ${match.result} ]，禁止作答！</span>`;
+                if (submitBtn) {
+                    submitBtn.disabled = true; // 禁用按钮
+                    submitBtn.className = "bg-[#232329] text-gray-500 text-sm font-bold py-2.5 w-full rounded mt-2 cursor-not-allowed border border-[#29292e]";
+                    
+                    // 🎯 拼接上你的预测结果！
+                    submitBtn.innerText = `🔒 比赛已截止，无法提交 ${predictText}`;
+                }
+                return;
+            }
+
+            // ✨ 如果比赛还没开奖，恢复提交按钮的阳光活力 Coral 红状态
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.className = "btn-coral text-white text-sm font-bold py-2.5 w-full rounded mt-2 cursor-pointer";
+                submitBtn.innerText = "🎯 提交预测选项";
+            }
+
+            // 渲染可选的三个按钮
+            const choices = [match.team_a, match.team_b, '平局'];
+            choices.forEach(choice => {
+                const btn = document.createElement('button');
+                btn.innerText = choice;
+                btn.className = "bg-[#121214] border border-[#29292e] hover:border-gray-500 text-gray-300 text-xs font-semibold py-2.5 px-4 rounded flex-1 transition-all cursor-pointer text-center";
+                
+                btn.onclick = () => {
+                    Array.from(container.children).forEach(b => {
+                        b.classList.remove('bg-[#ff5252]', 'text-white', 'border-[#ff5252]');
+                        b.classList.add('bg-[#121214]', 'text-gray-300', 'border-[#29292e]');
+                    });
+                    btn.classList.remove('bg-[#121214]', 'text-gray-300', 'border-[#29292e]');
+                    btn.classList.add('bg-[#ff5252]', 'text-white', 'border-[#ff5252]');
+                    selectedPredictWinner = choice;
+                };
+                container.appendChild(btn);
+            });
+        }
+
+        // 核心渲染：动态生成管理员开奖区的点击按钮
+        function updateAdminButtons() {
+            const adminSelect = document.getElementById('admin-match-select');
+            if (!adminSelect) return;
+            const matchId = adminSelect.value;
+            const container = document.getElementById('admin-buttons-container');
+            if (!container) return;
+            container.innerHTML = '';
+            selectedAdminWinner = null; // 清空点选状态
+
+            if (!matchId || !globalMatches[matchId]) {
+                container.innerHTML = '<span class="text-xs text-gray-500">暂无选项</span>';
+                return;
+            }
+
+            const match = globalMatches[matchId];
+            const choices = [match.team_a, match.team_b, '平局'];
+
+            choices.forEach(choice => {
+                const btn = document.createElement('button');
+                btn.innerText = choice;
+                btn.className = "bg-[#1a1a1e] border border-[#29292e] hover:border-gray-500 text-gray-400 text-[11px] py-1.5 px-2 rounded flex-1 transition-all cursor-pointer text-center";
+                
+                btn.onclick = () => {
+                    // 1. 褪去其他按钮样式
+                    Array.from(container.children).forEach(b => {
+                        b.classList.remove('bg-amber-500', 'text-black', 'border-amber-500');
+                        b.classList.add('bg-[#1a1a1e]', 'text-gray-400', 'border-[#29292e]');
+                    });
+                    // 2. 染上管理员专属的高亮琥珀黄（Amber）
+                    btn.classList.remove('bg-[#1a1a1e]', 'text-gray-400', 'border-[#29292e]');
+                    btn.classList.add('bg-amber-500', 'text-black', 'border-amber-500');
+                    // 3. 记录选择
+                    selectedAdminWinner = choice;
+                };
+                container.appendChild(btn);
+            });
+        }
+
+        // 获取赛事列表并同步更新全局缓存（已升级：同时喂饱三个下拉框）
+        async function loadMatches() {
+            const res = await fetch('/predict/matches');
+            globalMatches = await res.json(); // 🧠 丢进全局变量缓存
+            
+            const select = document.getElementById('match-select');
+            const adminSelect = document.getElementById('admin-match-select');
+            const adminDeleteSelect = document.getElementById('admin-delete-select'); // 🎯 1. 拿到新加的删除下拉框
+            
+            select.innerHTML = '';
+            if (adminSelect) adminSelect.innerHTML = '';
+            if (adminDeleteSelect) adminDeleteSelect.innerHTML = ''; // 🎯 2. 记得清空旧选项，防止重复堆叠
+            
+            for (const [id, info] of Object.entries(globalMatches)) {
+                // —— 喂给用户预测下拉框 ——
+                let option = document.createElement('option');
+                option.value = id;
+                option.innerText = `⚽ ${id} ${info.result ? `(赛果:${info.result})` : '(未开奖)'}`;
+                select.appendChild(option);
+                
+                // —— 喂给管理员录入下拉框 ——
+                if (adminSelect) {
+                    let adminOption = document.createElement('option');
+                    adminOption.value = id;
+                    adminOption.innerText = `⚽ ${id} ${info.result ? `(已结:${info.result})` : '(待开奖)'}`;
+                    adminSelect.appendChild(adminOption);
+                }
+
+                // —— 🎯 3. 喂给新加的删除比赛下拉框（包含有赛果和未开奖的所有比赛） ——
+                if (adminDeleteSelect) {
+                    let deleteOption = document.createElement('option');
+                    deleteOption.value = id;
+                    deleteOption.innerText = `⚽ ${id} ${info.result ? `(已结:${info.result})` : '(未开奖)'}`;
+                    adminDeleteSelect.appendChild(deleteOption);
+                }
+            }
+
+            // 💫 菜单刷新后，立刻触发一次按钮的组装与重绘
+            updatePredictButtons();
+            updateAdminButtons();
+
+        }
+
+        // 🗑️ 触发后端删除赛事的请求函数
+        async function deleteMatchFromServer() {
+            const adminDeleteSelect = document.getElementById('admin-delete-select');
+            const msgEl = document.getElementById('admin-delete-msg');
+            
+            if (!adminDeleteSelect || !adminDeleteSelect.value) {
+                msgEl.className = "text-[11px] text-center font-medium text-yellow-400 mt-1";
+                msgEl.innerText = "请先选择一场要删除的比赛！";
+                return;
+            }
+            
+            const matchId = adminDeleteSelect.value;
+            
+            // 🔒 宿舍防误删安全锁
+            const userInput = confirm(`⚠️ 【危险操作】\n\n确定要彻底删除比赛：\n👉 "${matchId}" 吗？\n\n这会把舍友对本场比赛的所有预测记录连带清空，且绝对无法恢复！`);
+            if (!userInput) return; // 取消就什么都不做
+
+            try {
+                // 向管理员路由发起 DELETE 请求
+                const res = await fetch(`/admin/delete_match/${encodeURIComponent(matchId)}`, {
+                    method: 'DELETE'
+                });
+                const data = await res.json();
+                
+                if (res.ok) {
+                    msgEl.className = "text-[11px] text-center font-medium text-green-400 mt-1";
+                    msgEl.innerText = `🗑️ ${data.message}`;
+                    
+                    // 🔄 核心：删除成功后，重新跑一遍上方的加载函数，让所有滚轮原地刷新！
+                    await loadMatches(); 
+                    
+                    // 如果你的系统有排行榜刷新函数，顺便也叫醒它（如果没有这行可以注释掉）
+                    if (typeof loadLeaderboard === 'function') loadLeaderboard();
+                } else {
+                    msgEl.className = "text-[11px] text-center font-medium text-red-400 mt-1";
+                    msgEl.innerText = data.detail || "删除失败！";
+                }
+            } catch (e) {
+                msgEl.className = "text-[11px] text-center font-medium text-red-400 mt-1";
+                msgEl.innerText = "网络请求失败，请检查后端是否正常运行！";
+            }
+        }
+
+        // 管理员：发布赛事
+        async function adminAddMatch() {
+            const ta = document.getElementById('new-team-a').value;
+            const tb = document.getElementById('new-team-b').value;
+            const dt = document.getElementById('new-match-date').value;
+            const msg = document.getElementById('admin-msg');
+            if(!ta || !tb || !dt) return;
+
+            const res = await fetch('/admin/add_match', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({team_a: ta, team_b: tb, date: dt})
+            });
+            if(res.ok) {
+                msg.className = "text-[11px] text-center text-green-400";
+                msg.innerText = "✅ 比赛发布成功！";
+                // 自动清空发布框
+                document.getElementById('new-team-a').value = '';
+                document.getElementById('new-team-b').value = '';
+                document.getElementById('new-match-date').value = '';
+                await loadMatches();
+            }
+        }
+
+        // 管理员：比分一键结算
+        async function adminSetResult() {
+            const mid = document.getElementById('admin-match-select').value;
+            const msg = document.getElementById('admin-msg');
+            
+            // ❌ 检查是否通过点击选择了赛果
+            if(!selectedAdminWinner) {
+                msg.className = "text-[11px] text-center text-amber-400";
+                msg.innerText = "⚠️ 请先点击选择比赛的真实胜者！";
+                return;
+            }
+
+            const res = await fetch('/admin/set_result', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({match_id: mid, result: selectedAdminWinner}) // 👈 传走点选的数据
+            });
+            const data = await res.json();
+            if(res.ok) {
+                msg.className = "text-[11px] text-center text-green-400";
+                msg.innerText = "📢 赛果已结算！";
+                await loadMatches();
+                loadLeaderboard();
+            } else {
+                msg.className = "text-[11px] text-center text-red-400";
+                msg.innerText = data.detail;
+            }
+        }
+
+        // 用户提交预测选项
+        async function submitPrediction() {
+            const msgEl = document.getElementById('predict-msg');
+            if (!loggedInUser) {
+                msgEl.className = "text-xs text-center text-amber-400";
+                msgEl.innerText = "⚠️ 请先登录账号！";
+                return;
+            }
+            const matchId = document.getElementById('match-select').value;
+
+            // ❌ 检查玩家有没有在按钮组里点选
+            if (!selectedPredictWinner) {
+                msgEl.className = "text-xs text-center text-amber-400";
+                msgEl.innerText = "⚠️ 请先点击选择你预测的胜出队伍！";
+                return;
+            }
+
+            const res = await fetch('/predict/submit', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({username: loggedInUser, match_id: matchId, predicted_winner: selectedPredictWinner}) // 👈 传走点选的数据
+            });
+            const data = await res.json();
+            if(res.ok) {
+                msgEl.className = "text-xs text-center text-green-400";
+                msgEl.innerText = "🎯 预测成功！";
+
+                await loadMyPredictions(); // 🎯 预测成功立刻更新本地缓存
+                updatePredictButtons();    // 重新渲染按钮
+                loadLeaderboard();
+            } else {
+                msgEl.className = "text-xs text-center text-red-400";
+                msgEl.innerText = data.detail;
+            }
+        }
+
+        // 用户注册与登录（保持不变）
+        async function handleAuth(url) {
+            const u = document.getElementById('username').value;
+            const p = document.getElementById('password').value;
+            const msgEl = document.getElementById('auth-msg');
+
+            const res = await fetch(url, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({username: u, password: p})
+            });
+            const data = await res.json();
+            if (res.ok) {
+                msgEl.className = "text-xs text-center text-green-400";
+                msgEl.innerText = "🎉 注册成功！请点击登录";
+            } else {
+                msgEl.className = "text-xs text-center text-red-400";
+                msgEl.innerText = data.detail;
+            }
+        }
+
+        // 修改后的登录函数
+        async function handleLogin() {
+            const u = document.getElementById('username').value;
+            if(!u) return;
+            loggedInUser = u;
+            document.getElementById('current-user').innerText = `🔥 ${u}`;
+            document.getElementById('auth-msg').className = "text-xs text-center text-green-400";
+            document.getElementById('auth-msg').innerText = "登录成功！";
+            
+            await loadMyPredictions(); // 🎯 登录成功立刻拉取历史预测
+            updatePredictButtons();    // 刷新按钮状态
+        }
+
+        // 🎯 切换密码可见性（勾选显示明文，取消勾选隐藏）
+        function togglePassword(inputId, checkbox) {
+            const passwordInput = document.getElementById(inputId);
+            if (passwordInput) {
+                passwordInput.type = checkbox.checked ? 'text' : 'password';
+            }
+        }
+
+        // 🏆 完美修复版：直接往现有的 HTML 表格躯干中填入多维度数据行
+        async function loadLeaderboard() {
+            try {
+                const res = await fetch('/predict/leaderboard');
+                if (!res.ok) {
+                    console.error("后端返回错误，状态码:", res.status);
+                    return;
+                }
+                const list = await res.json();
+                
+                // 🎯 破案核心：直接定位到 HTML 表格中的 tbody 躯干
+                // 自动兼容：优先寻找表格内部的 leaderboard-body，找不到则降级找 leaderboard-box
+                const tbody = document.getElementById('leaderboard-body') || document.getElementById('leaderboard-box');
+                if (!tbody) {
+                    console.error("找不到渲染容器！请检查 HTML 表格的 <tbody> 是否加了 id='leaderboard-body'");
+                    return;
+                }
+                
+                tbody.innerHTML = '';
+                
+                // 健壮性检查：确保后端吐出的数据是一个合法数组
+                if (!Array.isArray(list) || list.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="7" class="text-gray-500 text-center py-4">暂无排行数据</td></tr>';
+                    return;
+                }
+
+                let rowsHtml = '';
+                list.forEach((item, index) => {
+                    // 🏅 动态计算奖牌与序号
+                    let medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `&nbsp;&nbsp;${index + 1}.`;
+                    
+                    // 🔨 纯粹生成表格行（<tr>），无缝塞进你现有的彩色表头下方
+                    rowsHtml += `
+                        <tr class="hover:bg-[#18181c] transition-colors border-b border-[#1f1f23] last:border-b-0">
+                            <td class="p-2.5 pl-3 font-semibold text-gray-200 flex items-center gap-1">
+                                <span>${medal}</span>
+                                <span class="text-white">${item.username}</span>
+                            </td>
+                            <td class="p-2.5 text-center font-bold text-green-400">${item.score}场</td>
+                            <td class="p-2.5 text-center text-blue-400">${item.attended_count}场</td>
+                            <td class="p-2.5 text-center text-gray-500">${item.all_count}场</td>
+                            <td class="p-2.5 text-center text-yellow-500">${item.unsettled_count}场</td>
+                            <td class="p-2.5 text-center text-purple-400 font-medium">${item.accuracy_attended}</td>
+                            <td class="p-2.5 text-center text-orange-400 font-bold font-mono">${item.accuracy}</td>
+                        </tr>
+                    `;
+                });
+                
+                tbody.innerHTML = rowsHtml;
+            } catch (error) {
+                console.error("排行榜渲染发生异常:", error);
+            }
+        }
+    </script>
+</body>
+</html>
