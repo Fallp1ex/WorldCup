@@ -79,6 +79,7 @@ from pydantic import BaseModel
 import database
 
 router = APIRouter(prefix="/admin", tags=["开发者后台"])
+ADMIN_PASSWORD = "123456"
 
 # 1. 这里的模型增加了 date 字段
 class AddMatchModel(BaseModel):
@@ -90,6 +91,51 @@ class AddMatchModel(BaseModel):
 class SetResultModel(BaseModel):
     match_id: str  
     result: str
+
+class AdminAuthModel(BaseModel):
+    password: str
+
+@router.get("/users")
+def list_users():
+    users = []
+    for username, info in database.USER_DATABASE.items():
+        users.append({
+            "username": username,
+            "ip": info.get("ip", ""),
+            "created_at": info.get("created_at"),
+            "last_login_ip": info.get("last_login_ip")
+        })
+    users.sort(key=lambda item: item["username"].lower())
+    return users
+
+@router.delete("/delete_user/{username}")
+def delete_user(username: str):
+    if username not in database.USER_DATABASE:
+        raise HTTPException(status_code=404, detail="找不到该用户")
+
+    user_info = database.USER_DATABASE.pop(username)
+    user_ip = user_info.get("ip")
+    if user_ip:
+        still_used = any(info.get("ip") == user_ip for info in database.USER_DATABASE.values())
+        if not still_used and user_ip in database.REGISTERED_IPS:
+            database.REGISTERED_IPS.remove(user_ip)
+
+    database.PREDICTIONS_DATABASE = [
+        p for p in database.PREDICTIONS_DATABASE if p["username"] != username
+    ]
+
+    database.log_event("user_delete", f"删除用户 {username}", actor="admin")
+    database.save_to_disk()
+    return {"message": f"已删除用户：{username}"}
+
+@router.post("/verify")
+def verify_admin(data: AdminAuthModel):
+    if data.password != ADMIN_PASSWORD:
+        raise HTTPException(status_code=400, detail="密码错误，请重新输入")
+
+    database.log_event("admin_verify", "管理员验证成功", actor="admin")
+    database.save_to_disk()
+    return {"message": "管理员验证成功"}
 
 @router.post("/add_match")
 def add_match(match: AddMatchModel):
@@ -115,7 +161,8 @@ def add_match(match: AddMatchModel):
         "date": dt,
         "result": None
     }
-    
+
+    database.log_event("match_add", f"发布比赛 {custom_match_id}", actor="admin")
     database.save_to_disk()
     return {"message": f"成功发布赛事：{custom_match_id}"}
 
@@ -126,7 +173,8 @@ def delete_match(match_id: str):  # 改为 str
     
     database.MATCHES_DATABASE.pop(match_id)
     database.PREDICTIONS_DATABASE = [p for p in database.PREDICTIONS_DATABASE if p["match_id"] != match_id]
-    
+
+    database.log_event("match_delete", f"删除比赛 {match_id}", actor="admin")
     database.save_to_disk()
     return {"message": f"已成功删除比赛：{match_id}"}
 
@@ -142,7 +190,8 @@ def set_result(data: SetResultModel):
         raise HTTPException(status_code=400, detail="赛果不合法！")
     
     database.MATCHES_DATABASE[data.match_id]["result"] = data.result
-    
+
+    database.log_event("match_set_result", f"录入赛果 {data.match_id} -> {data.result}", actor="admin")
     database.save_to_disk()
     return {"message": f"赛事 [{data.match_id}] 结果已成功录入为: {data.result}"}
 

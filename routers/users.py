@@ -10,26 +10,42 @@ class UserModel(BaseModel):
     password: str
 
 @router.post("/register")
-
 def register(user_data: UserModel, request: Request):
     client_ip = request.client.host
-    
-    # 1. 使用 .strip() 去掉用户名首尾的空格，防止有人输入 "   " 钻空子
     username = user_data.username.strip()
     password = user_data.password
 
-    # 2. 核心判断：如果名字为空，直接拦截并报错
     if not username:
-        raise HTTPException(status_code=400, detail="注册失败：用户名不能为空！")
-        
-    if client_ip in database.REGISTERED_IPS:
-        raise HTTPException(status_code=400, detail="注册失败：该 IP 已经注册过账号！")
+        raise HTTPException(status_code=400, detail="用户名不能为空，请重新输入")
+    if not password:
+        raise HTTPException(status_code=400, detail="密码不能为空，请重新输入")
     if username in database.USER_DATABASE:
-        raise HTTPException(status_code=400, detail="注册失败：用户名已存在！")
+        raise HTTPException(status_code=400, detail="该用户名已存在，请重新输入")
 
-    # 3. 写入数据库（注意：这里存入的是处理干净后的 username）
-    database.USER_DATABASE[username] = {"password": password, "ip": client_ip}
+    database.USER_DATABASE[username] = {
+        "password": password,
+        "ip": client_ip,
+        "created_at": request.headers.get("date")
+    }
     database.REGISTERED_IPS.add(client_ip)
-    
-    database.save_to_disk()  
+
+    database.log_event("user_register", f"用户 {username} 注册成功", actor=username)
+    database.save_to_disk()
     return {"message": "注册成功！"}
+
+@router.post("/login")
+def login(user_data: UserModel, request: Request):
+    username = user_data.username.strip()
+    password = user_data.password
+
+    if username not in database.USER_DATABASE:
+        raise HTTPException(status_code=404, detail="该用户不存在，请注册后登录")
+
+    user_record = database.USER_DATABASE[username]
+    if user_record.get("password") != password:
+        raise HTTPException(status_code=400, detail="密码错误，请重新输入")
+
+    user_record["last_login_ip"] = request.client.host
+    database.log_event("user_login", f"用户 {username} 登录成功", actor=username)
+    database.save_to_disk()
+    return {"message": "登录成功！", "username": username}

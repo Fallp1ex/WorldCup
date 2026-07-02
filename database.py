@@ -36,6 +36,7 @@
 # database.py
 import json
 import os
+from datetime import datetime
 
 DATA_FILE = "data_storage.json"
 
@@ -48,12 +49,22 @@ if os.path.exists(DATA_FILE):
         MATCHES_DATABASE = _disk_data.get("matches", {})
         PREDICTIONS_DATABASE = _disk_data.get("predictions", [])
         CONFIG = _disk_data.get("config", {})
+        ACTIVITY_LOG = _disk_data.get("activity_log", [])
 else:
     USER_DATABASE = {}
     REGISTERED_IPS = set()
     MATCHES_DATABASE = {}
     PREDICTIONS_DATABASE = []
     CONFIG = {}
+    ACTIVITY_LOG = []
+
+def log_event(event_type, detail, actor=None):
+    ACTIVITY_LOG.append({
+        "timestamp": datetime.now().isoformat(timespec="seconds"),
+        "type": event_type,
+        "actor": actor,
+        "detail": detail
+    })
 
 def save_to_disk():
     with open(DATA_FILE, "w", encoding="utf-8") as f:
@@ -62,5 +73,6 @@ def save_to_disk():
             "ips": list(REGISTERED_IPS),
             "matches": MATCHES_DATABASE,
             "predictions": PREDICTIONS_DATABASE,
-            "config": CONFIG
+            "config": CONFIG,
+            "activity_log": ACTIVITY_LOG
         }, f, ensure_ascii=False, indent=4)

@@ -53,6 +53,11 @@ def make_prediction(prediction: PredictModel):
         "match_id": prediction.match_id,
         "predicted_winner": prediction.predicted_winner
     })
+    database.log_event(
+        "prediction_submit",
+        f"{prediction.username} 提交预测：{prediction.match_id} -> {prediction.predicted_winner}",
+        actor=prediction.username
+    )
     database.save_to_disk() # 数据写进硬盘
     return {"message": "预测提交成功！"}
 
