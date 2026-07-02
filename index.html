@@ -3,158 +3,787 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🏆 世界杯预测指北</title>
+    <title>世界杯预测指北</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <style>
-        body { background-color: #121214; color: #e1e1e6; font-family: system-ui, sans-serif; }
-        .sidebar { background-color: #1a1a1e; border-right: 1px solid #29292e; }
-        .input-dark { background-color: #121214; border: 1px solid #29292e; color: #fff; }
-        .input-dark:focus { border-color: #ff5252; outline: none; }
-        .btn-coral { background-color: #ff5252; transition: background 0.2s; }
-        .btn-coral:hover { background-color: #ff3333; }
-        .divider { border-top: 1px solid #29292e; }
+        :root {
+            --bg: #07130f;
+            --bg-soft: rgba(14, 33, 27, 0.82);
+            --panel: rgba(12, 25, 21, 0.86);
+            --panel-strong: rgba(10, 20, 17, 0.94);
+            --line: rgba(185, 255, 213, 0.12);
+            --line-strong: rgba(185, 255, 213, 0.22);
+            --text: #eefbf3;
+            --muted: #9eb5aa;
+            --accent: #c8ff65;
+            --accent-deep: #99d632;
+            --danger: #ff6b6b;
+            --gold: #ffd66b;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            min-height: 100vh;
+            color: var(--text);
+            font-family: "Segoe UI", "PingFang SC", "Hiragino Sans GB", sans-serif;
+            background: #020806;
+        }
+
+        .video-bg {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            overflow: hidden;
+            pointer-events: none;
+        }
+
+        .video-bg video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            filter: none;
+            transform: none;
+            opacity: 1;
+        }
+
+        .video-bg::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.18);
+        }
+
+        .shell {
+            position: relative;
+            z-index: 1;
+        }
+
+        .sidebar {
+            background: transparent;
+            border-right: none;
+            backdrop-filter: none;
+        }
+
+        .panel {
+            background: linear-gradient(180deg, rgba(13, 28, 23, 0.9), rgba(8, 18, 15, 0.95));
+            border: 1px solid var(--line);
+            border-radius: 24px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.28);
+            backdrop-filter: blur(16px);
+        }
+
+        .panel-soft {
+            background: var(--bg-soft);
+            border: 1px solid var(--line);
+            border-radius: 20px;
+            backdrop-filter: blur(14px);
+        }
+
+        .hero-panel {
+            background:
+                linear-gradient(135deg, rgba(200, 255, 101, 0.14), rgba(255, 214, 107, 0.08)),
+                linear-gradient(180deg, rgba(11, 24, 20, 0.9), rgba(8, 16, 14, 0.96));
+            border: 1px solid var(--line-strong);
+            border-radius: 32px;
+            box-shadow: 0 24px 80px rgba(0, 0, 0, 0.35);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .hero-panel::after {
+            content: "";
+            position: absolute;
+            inset: auto -120px -120px auto;
+            width: 280px;
+            height: 280px;
+            background: radial-gradient(circle, rgba(200, 255, 101, 0.22), transparent 65%);
+            pointer-events: none;
+        }
+
+        .input-dark,
+        select.input-dark {
+            width: 100%;
+            background: rgba(5, 13, 10, 0.88);
+            border: 1px solid var(--line);
+            color: var(--text);
+            border-radius: 14px;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+        }
+
+        .input-dark::placeholder {
+            color: #729182;
+        }
+
+        .input-dark:focus,
+        select.input-dark:focus {
+            border-color: rgba(200, 255, 101, 0.7);
+            box-shadow: 0 0 0 4px rgba(200, 255, 101, 0.08);
+            outline: none;
+            transform: translateY(-1px);
+        }
+
+        .btn-coral {
+            background: linear-gradient(135deg, var(--accent) 0%, #e7ff9a 100%);
+            color: #0d180f;
+            box-shadow: 0 14px 34px rgba(200, 255, 101, 0.18);
+            transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+        }
+
+        .btn-coral:hover {
+            transform: translateY(-1px);
+            filter: brightness(1.02);
+            box-shadow: 0 18px 38px rgba(200, 255, 101, 0.24);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.06);
+            color: var(--text);
+            border: 1px solid var(--line);
+            transition: all 0.2s ease;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: var(--line-strong);
+        }
+
+        .divider {
+            border-top: 1px solid var(--line);
+        }
+
+        .metric-card {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--line);
+            border-radius: 20px;
+        }
+
+        .leaderboard-table thead tr {
+            background: rgba(255, 255, 255, 0.04);
+        }
+
+        .leaderboard-table tbody tr:hover {
+            background: rgba(200, 255, 101, 0.05);
+        }
+
+        .glass-label {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--line);
+        }
+
+        .page-shell {
+            position: relative;
+            z-index: 1;
+            min-height: 100vh;
+            padding: 16px;
+        }
+
+        .page-screen {
+            display: none;
+            min-height: calc(100vh - 32px);
+            animation: fadeUp 0.35s ease;
+        }
+
+        .page-screen.is-active {
+            display: flex;
+        }
+
+        .landing-wrap {
+            width: 100%;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .landing-card {
+            width: min(1120px, 100%);
+            min-height: min(88vh, 860px);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 32px;
+            border-radius: 36px;
+            border: 1px solid rgba(185, 255, 213, 0.16);
+            background:
+                linear-gradient(180deg, rgba(9, 21, 17, 0.74), rgba(7, 16, 13, 0.82));
+            backdrop-filter: blur(10px);
+            box-shadow: 0 30px 90px rgba(0, 0, 0, 0.3);
+            gap: 36px;
+        }
+
+        .landing-card--entry {
+            justify-content: center;
+            gap: 28px;
+            min-height: min(82vh, 760px);
+        }
+
+        .title-kicker {
+            font-size: 12px;
+            letter-spacing: 0.24em;
+            text-transform: uppercase;
+            color: #dfffb0;
+            font-weight: 700;
+            text-align: center;
+        }
+
+        .title-main {
+            margin-top: 18px;
+            font-size: clamp(40px, 7vw, 88px);
+            line-height: 1.02;
+            font-weight: 900;
+            color: #ffffff;
+            text-align: center;
+        }
+
+        .entry-options {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 20px;
+            align-items: stretch;
+        }
+
+        .landing-title-block {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .entry-option {
+            border-radius: 28px;
+            border: 1px solid rgba(185, 255, 213, 0.16);
+            background: rgba(0, 0, 0, 0.2);
+            padding: 26px;
+            text-align: left;
+            transition: transform 0.22s ease, border-color 0.22s ease, background 0.22s ease;
+            cursor: pointer;
+        }
+
+        .entry-option:hover {
+            transform: translateY(-2px);
+            border-color: rgba(200, 255, 101, 0.34);
+            background: rgba(255, 255, 255, 0.06);
+        }
+
+        .entry-option-title {
+            font-size: 28px;
+            line-height: 1.15;
+            font-weight: 900;
+            color: #ffffff;
+        }
+
+        .entry-option-desc {
+            margin-top: 12px;
+            font-size: 14px;
+            line-height: 1.8;
+            color: #a8beb2;
+        }
+
+        .entry-form-shell {
+            width: min(780px, 100%);
+            margin: 0 auto;
+            position: relative;
+        }
+
+        .entry-back {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 999px;
+            border: 1px solid rgba(185, 255, 213, 0.16);
+            background: rgba(255, 255, 255, 0.05);
+            color: #d9ebe2;
+            padding: 10px 16px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s ease, border-color 0.2s ease;
+            position: absolute;
+            right: 0;
+            bottom: -72px;
+        }
+
+        .entry-back:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(200, 255, 101, 0.26);
+        }
+
+        .entry-panel {
+            margin-top: 18px;
+            padding: 28px;
+            border-radius: 28px;
+            border: 1px solid rgba(185, 255, 213, 0.16);
+            background: rgba(7, 17, 13, 0.72);
+            backdrop-filter: blur(10px);
+        }
+
+        .entry-panel-title {
+            font-size: 28px;
+            font-weight: 900;
+            color: #ffffff;
+            text-align: center;
+        }
+
+        .entry-panel-text {
+            margin-top: 10px;
+            color: #a8beb2;
+            line-height: 1.8;
+            font-size: 14px;
+        }
+
+        .dashboard-layout {
+            width: 100%;
+            display: grid;
+            grid-template-columns: 340px minmax(0, 1.12fr) minmax(0, 0.88fr);
+            gap: 20px;
+            align-items: stretch;
+        }
+
+        .dashboard-shell {
+            position: relative;
+            width: 100%;
+        }
+
+        .dashboard-panel {
+            min-height: calc(100vh - 32px);
+        }
+
+        .admin-tools {
+            display: none;
+        }
+
+        .admin-tools.is-visible {
+            display: block;
+        }
+
+        .dashboard-logout {
+            position: absolute;
+            right: 0;
+            bottom: -70px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 999px;
+            border: 1px solid rgba(185, 255, 213, 0.16);
+            background: rgba(255, 255, 255, 0.05);
+            color: #d9ebe2;
+            padding: 10px 16px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s ease, border-color 0.2s ease;
+        }
+
+        .dashboard-logout:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(200, 255, 101, 0.26);
+        }
+
+        .admin-user-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-height: 280px;
+            overflow-y: auto;
+        }
+
+        .admin-user-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 12px 14px;
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(255, 255, 255, 0.04);
+        }
+
+        .admin-user-meta {
+            font-size: 11px;
+            color: #91a79b;
+            line-height: 1.6;
+        }
+
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(12px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 1024px) {
+            body {
+                overflow: auto;
+            }
+
+            .page-shell {
+                padding: 12px;
+            }
+
+            .page-screen {
+                min-height: calc(100vh - 24px);
+            }
+
+            .landing-card {
+                padding: 22px;
+                min-height: auto;
+            }
+
+            .entry-options {
+                grid-template-columns: 1fr;
+            }
+
+            .entry-back {
+                position: static;
+                margin-top: 16px;
+            }
+
+            .dashboard-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .dashboard-panel {
+                min-height: auto;
+            }
+
+            .dashboard-logout {
+                position: static;
+                margin-top: 16px;
+            }
+        }
     </style>
 </head>
-<body class="h-screen flex overflow-hidden">
-
-    <div class="sidebar w-80 p-6 flex flex-col justify-between shrink-0 overflow-y-auto">
-        <div class="space-y-6">
-            <div>
-                <div class="flex items-center gap-2 text-2xl font-bold text-white mb-1">
-                    <span>🏆</span> 世界杯预测指北
-                </div>
-                <div class="text-xs text-gray-500">IP 统一防刷认证系统</div>
-            </div>
-
-        <div class="space-y-3">
-            <div class="text-sm font-semibold text-gray-300 flex items-center gap-1">🔒 账号认证</div>
-            <input type="text" id="username" class="input-dark w-full p-2.5 rounded text-sm" placeholder="请输入用户名">
-            
-            <div class="flex items-center gap-2">
-                <input type="password" id="password" class="input-dark flex-1 p-2.5 rounded text-sm" placeholder="请输入密码">
-                
-                <label class="flex items-center gap-1 text-xs text-gray-400 cursor-pointer select-none bg-[#1a1a1e] p-2.5 rounded border border-[#29292e] whitespace-nowrap">
-                    <input type="checkbox" onchange="togglePassword('password', this)" class="accent-amber-500 cursor-pointer">
-                    <span>显示</span>
-                </label>
-            </div>
-
-            <div class="flex gap-2">
-                <button onclick="handleAuth('/user/register')" class="btn-coral text-white text-sm font-bold py-2.5 px-4 rounded flex-1 cursor-pointer">🚀 注册</button>
-                <button onclick="handleLogin()" class="bg-gray-700 hover:bg-gray-600 text-white text-sm font-bold py-2.5 px-4 rounded flex-1 cursor-pointer">🔑 登录</button>
-            </div>
-            <div id="auth-msg" class="text-xs text-center font-medium"></div>
-        </div>
-
-            <div class="divider"></div>
-
-            <div class="space-y-3">
-                <div class="text-sm font-semibold text-gray-300 flex items-center gap-1">🛠️ 赛事管理后台</div>
-                
-                <div class="flex items-center gap-2">
-                    <input type="password" id="admin-pwd" class="input-dark flex-1 p-2.5 rounded text-sm" placeholder="输入管理员密码解锁">
-                    
-                    <label class="flex items-center gap-1 text-xs text-gray-400 cursor-pointer select-none bg-[#1a1a1e] p-2.5 rounded border border-[#29292e] whitespace-nowrap">
-                        <input type="checkbox" onchange="togglePassword('admin-pwd', this)" class="accent-amber-500 cursor-pointer">
-                        <span>显示</span>
-                    </label>
-                </div>
-                
-                <button onclick="verifyAdmin()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold py-2 w-full rounded cursor-pointer">⚙️ 验证进入后台</button>
-            </div>
-                
-
-                <div id="admin-panel" class="hidden space-y-4 pt-2 bg-[#121214] p-3 rounded border border-[#29292e]">
-                    <div class="text-xs font-bold text-amber-400">【快捷发布新比赛】</div>
-                    <input type="text" id="new-team-a" class="input-dark w-full p-2 rounded text-xs" placeholder="主队（如：阿根廷）">
-                    <input type="text" id="new-team-b" class="input-dark w-full p-2 rounded text-xs" placeholder="客队（如：法国）">
-                    <input type="text" id="new-match-date" class="input-dark w-full p-2 rounded text-xs" placeholder="时间（如：2022Dec26）">
-                    <button onclick="adminAddMatch()" class="bg-green-600 hover:bg-green-700 text-white text-xs font-bold py-1.5 w-full rounded cursor-pointer">➕ 发布比赛</button>
-
-                    <div class="divider"></div>
-
-                    <div class="text-xs font-bold text-amber-400">【录入真实赛果】</div>
-                    <select id="admin-match-select" onchange="updateAdminButtons()" class="input-dark w-full p-2 rounded text-xs"></select>
-
-                    <div class="text-[11px] text-gray-400 mt-1">选择比赛胜者：</div>
-                    <div id="admin-buttons-container" class="flex gap-1.5"></div>
-
-                    <button onclick="adminSetResult()" class="bg-amber-500 hover:bg-amber-600 text-black text-xs font-bold py-2 w-full rounded mt-1">📢 公布赛果结算</button>
-                    <div id="admin-msg" class="text-[11px] text-center font-medium mt-1"></div>
-
-                    <div class="pt-3 border-t border-[#29292e] space-y-2 mt-2">
-                        <div class="text-xs font-bold text-red-400 flex items-center gap-1">❌ 【危险区域：删除比赛】</div>
-                        <select id="admin-delete-select" class="input-dark w-full p-2 rounded text-xs"></select>
-                        <button onclick="deleteMatchFromServer()" class="bg-red-600 hover:bg-red-700 text-white text-xs font-bold py-1.5 w-full rounded mt-1 cursor-pointer transition-all flex items-center justify-center gap-1">
-                            🗑️ 确认从系统彻底删除
-                        </button>
-                        <div id="admin-delete-msg" class="text-[11px] text-center font-medium mt-1"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="divider pt-4 text-xs text-gray-400 mt-4">
-            当前身份：<span id="current-user" class="text-amber-400 font-bold">未登录（游客）</span>
-        </div>
+<body class="shell">
+    <div class="video-bg" aria-hidden="true">
+        <video autoplay muted loop playsinline preload="auto">
+            <source src="assets/worldcup-highlights.mp4" type="video/mp4">
+        </video>
     </div>
 
-    <div class="flex-1 p-8 overflow-y-auto space-y-8">
-        <div>
-            <h1 class="text-4xl font-extrabold text-white flex items-center gap-3">⚽ 乾坤未定，你我皆是球王</h1>
-            <p class="text-gray-400 mt-2 text-sm">加入预测，和舍友朋友们比一比谁才是真正的懂球帝。</p>
-        </div>
+    <div class="page-shell">
+        <section id="page-home" class="page-screen landing-wrap is-active">
+            <div class="landing-card">
+                <div class="landing-title-block">
+                    <div class="title-kicker">World Cup Predictor</div>
+                    <h1 class="title-main">世界杯预测指北</h1>
+                </div>
+                <div class="entry-options">
+                    <button type="button" class="entry-option" onclick="openEntry('user')">
+                        <div class="entry-option-title">账号认证</div>
+                        <div class="entry-option-desc">进入个人认证入口，完成注册或登录后，直接进入预测主界面。</div>
+                    </button>
+                    <button type="button" class="entry-option" onclick="openEntry('admin')">
+                        <div class="entry-option-title">管理后台</div>
+                        <div class="entry-option-desc">进入管理员验证入口，验证成功后进入赛事管理与预测总览页面。</div>
+                    </button>
+                </div>
+            </div>
+        </section>
 
-        <div class="divider"></div>
+        <section id="page-entry" class="page-screen landing-wrap">
+            <div class="landing-card landing-card--entry">
+                <div class="entry-form-shell">
+                    <button type="button" class="entry-back" onclick="setPage('home')">返回首页</button>
+                    <div class="entry-panel">
+                        <div class="title-kicker" id="entry-kicker">World Cup Predictor</div>
+                        <h2 class="entry-panel-title" id="entry-title">账号认证</h2>
+                        <p class="entry-panel-text" id="entry-text">完成当前步骤后进入下一层页面。</p>
 
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <div class="space-y-4">
-                <h2 class="text-xl font-bold text-white flex items-center gap-2">🔮 提交今日预测</h2>
-                <div class="bg-[#1a1a1e] p-5 rounded-lg border border-[#29292e] space-y-4">
-                    <div>
-                        <label class="text-xs text-gray-400 block mb-1">选择比赛场次</label>
-                        <select id="match-select" onchange="updatePredictButtons()" class="input-dark w-full p-2.5 rounded text-sm"></select>
-                    </div>
-                    <div>
-                        <label class="text-xs text-gray-400 block mb-2">选择你心目中的胜者</label>
-                        <div id="predict-buttons-container" class="flex gap-3">
+                        <div id="entry-user-panel" class="mt-8 space-y-4">
+                            <input type="text" id="username" class="input-dark p-3 text-sm" placeholder="请输入用户名">
+                            <div class="flex items-center gap-2">
+                                <input type="password" id="password" class="input-dark flex-1 p-3 text-sm" placeholder="请输入密码">
+                                <label class="glass-label flex items-center gap-1.5 text-xs text-[#cde6d8] cursor-pointer select-none px-3 py-3 rounded-xl whitespace-nowrap">
+                                    <input type="checkbox" onchange="togglePassword('password', this)" class="accent-lime-400 cursor-pointer">
+                                    <span>显示</span>
+                                </label>
                             </div>
-                    </div>
-                    <button id="submit-predict-btn" onclick="submitPrediction()" class="btn-coral text-white text-sm font-bold py-2.5 w-full rounded mt-2 cursor-pointer">🎯 提交预测选项</button>
-                    <div id="predict-msg" class="text-xs text-center font-medium"></div>
-                </div>
-            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <button onclick="handleAuth('/user/register')" class="btn-coral text-sm font-bold py-3 px-4 rounded-xl cursor-pointer">注册账号</button>
+                                <button onclick="handleLogin()" class="btn-secondary text-sm font-bold py-3 px-4 rounded-xl cursor-pointer">立即登录</button>
+                            </div>
+                            <div id="auth-msg" class="text-xs text-center font-medium min-h-4"></div>
+                        </div>
 
-            <div class="space-y-2 mt-4">
-                <div class="text-xs font-bold text-amber-400 flex items-center gap-1">📊 谁是懂球帝</div>
-                
-                <div class="bg-[#121214] rounded border border-[#29292e] overflow-x-auto">
-                    <table class="w-full text-left border-collapse min-w-[580px]">
-                        <thead>
-                            <tr class="border-b border-[#29292e] text-[11px] text-gray-400 font-semibold bg-[#161619]">
-                                <th class="p-2.5 pl-3">排名 / 玩家</th>
-                                <th class="p-2.5 text-center text-green-400">猜对场次</th>
-                                <th class="p-2.5 text-center text-blue-400">参加场次</th>
-                                <th class="p-2.5 text-center text-gray-400">总场次</th>
-                                <th class="p-2.5 text-center text-yellow-500">未结算</th>
-                                <th class="p-2.5 text-center text-purple-400">参与率</th>
-                                <th class="p-2.5 text-center text-orange-400">正确率</th>
-                            </tr>
-                        </thead>
-                        <tbody id="leaderboard-body" class="text-xs text-gray-300 divide-y divide-[#1f1f23]">
-                            </tbody>
-                    </table>
+                        <div id="entry-admin-panel" class="mt-8 space-y-4 hidden">
+                            <input type="password" id="admin-pwd" class="input-dark p-3 text-sm" placeholder="输入管理员密码解锁">
+                            <label class="glass-label inline-flex items-center gap-1.5 text-xs text-[#cde6d8] cursor-pointer select-none px-3 py-3 rounded-xl whitespace-nowrap">
+                                <input type="checkbox" onchange="togglePassword('admin-pwd', this)" class="accent-lime-400 cursor-pointer">
+                                <span>显示密码</span>
+                            </label>
+                            <button onclick="verifyAdmin()" class="w-full rounded-xl bg-emerald-500/85 hover:bg-emerald-400 text-[#092015] text-sm font-bold py-3 cursor-pointer transition-all">验证并进入后台</button>
+                            <div id="admin-entry-msg" class="text-xs text-center font-medium min-h-4"></div>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
+        </section>
+
+        <section id="page-dashboard" class="page-screen">
+            <div class="dashboard-shell">
+            <div class="dashboard-layout">
+                <aside class="panel p-5 lg:p-6 flex flex-col justify-between gap-5 dashboard-panel">
+                    <div class="space-y-5">
+                        <div>
+                            <div class="text-xs font-bold tracking-[0.18em] text-[#dfffb0] uppercase mb-4">World Cup Predictor</div>
+                            <div class="text-2xl font-black text-white">世界杯预测指北</div>
+                        </div>
+
+                        <div class="space-y-2">
+                            <div class="text-xs font-bold tracking-[0.18em] text-[#9eb5aa] uppercase">Current User</div>
+                            <div class="text-lg text-[#dfffb0] font-bold" id="current-user">未登录（游客）</div>
+                        </div>
+
+                        <div id="dashboard-admin-tools" class="admin-tools space-y-4">
+                            <div class="divider"></div>
+                            <div class="text-xs font-bold tracking-[0.18em] text-[#ffd66b] uppercase">Admin Tools</div>
+                            <div class="space-y-3">
+                                <div class="text-xs font-bold text-[#dfffb0]">快捷发布新比赛</div>
+                                <input type="text" id="new-team-a" class="input-dark p-2.5 text-xs" placeholder="主队（如：阿根廷）">
+                                <input type="text" id="new-team-b" class="input-dark p-2.5 text-xs" placeholder="客队（如：法国）">
+                                <input type="text" id="new-match-date" class="input-dark p-2.5 text-xs" placeholder="时间（如：2022Dec26）">
+                                <button onclick="adminAddMatch()" class="w-full rounded-xl bg-lime-300 hover:bg-lime-200 text-[#102014] text-xs font-bold py-2.5 cursor-pointer transition-all">发布比赛</button>
+                            </div>
+
+                            <div class="divider"></div>
+
+                            <div class="space-y-3">
+                                <div class="text-xs font-bold text-[#ffd66b]">录入真实赛果</div>
+                                <select id="admin-match-select" onchange="updateAdminButtons()" class="input-dark p-2.5 text-xs"></select>
+                                <div class="text-[11px] text-[#9eb5aa]">选择比赛胜者：</div>
+                                <div id="admin-buttons-container" class="flex gap-2"></div>
+                                <button onclick="adminSetResult()" class="w-full rounded-xl bg-amber-400 hover:bg-amber-300 text-[#1f1605] text-xs font-bold py-2.5 cursor-pointer transition-all">公布赛果结算</button>
+                                <div id="admin-msg" class="text-[11px] text-center font-medium min-h-4"></div>
+                            </div>
+
+                            <div class="divider"></div>
+
+                            <div class="space-y-3">
+                                <div class="text-xs font-bold text-rose-300">危险区域：删除比赛</div>
+                                <select id="admin-delete-select" class="input-dark p-2.5 text-xs"></select>
+                                <button onclick="deleteMatchFromServer()" class="w-full rounded-xl bg-rose-500/90 hover:bg-rose-400 text-white text-xs font-bold py-2.5 cursor-pointer transition-all">确认彻底删除</button>
+                                <div id="admin-delete-msg" class="text-[11px] text-center font-medium min-h-4"></div>
+                            </div>
+
+                            <div class="divider"></div>
+
+                            <div class="space-y-3">
+                                <div class="flex items-center justify-between gap-3">
+                                    <div class="text-xs font-bold text-[#dfffb0]">用户列表</div>
+                                    <button onclick="loadAdminUsers()" class="text-[11px] text-[#cde6d8] border border-white/10 rounded-full px-3 py-1 cursor-pointer hover:bg-white/8 transition-all">刷新</button>
+                                </div>
+                                <div id="admin-user-list" class="admin-user-list">
+                                    <div class="text-[11px] text-[#7f9488]">暂无用户数据</div>
+                                </div>
+                                <div id="admin-user-msg" class="text-[11px] text-center font-medium min-h-4"></div>
+                            </div>
+                        </div>
+                    </div>
+                </aside>
+
+                <main class="panel p-5 lg:p-6 space-y-5 dashboard-panel flex flex-col">
+                    <div class="flex items-center justify-between gap-3">
+                        <div>
+                            <div class="text-xs font-bold tracking-[0.18em] text-[#dfffb0] uppercase">Prediction Zone</div>
+                            <h2 class="text-2xl font-black text-white mt-2">提交今日预测</h2>
+                        </div>
+                    </div>
+
+                    <div class="space-y-4 flex-1 flex flex-col justify-center">
+                        <div>
+                            <label class="text-xs text-[#9eb5aa] block mb-2">选择比赛场次</label>
+                            <select id="match-select" onchange="updatePredictButtons()" class="input-dark p-3 text-sm"></select>
+                        </div>
+                        <div>
+                            <label class="text-xs text-[#9eb5aa] block mb-2">选择你心目中的胜者</label>
+                            <div id="predict-buttons-container" class="grid grid-cols-1 sm:grid-cols-3 gap-3"></div>
+                        </div>
+                        <button id="submit-predict-btn" onclick="submitPrediction()" class="btn-coral text-sm font-bold py-3.5 w-full rounded-xl cursor-pointer">提交预测选项</button>
+                        <div id="predict-msg" class="text-xs text-center font-medium min-h-4"></div>
+                    </div>
+                </main>
+
+                <section class="panel p-5 lg:p-6 space-y-4 dashboard-panel flex flex-col">
+                    <div class="flex items-center justify-between gap-3">
+                        <div>
+                            <div class="text-xs font-bold tracking-[0.18em] text-[#ffd66b] uppercase">Leaderboard</div>
+                            <h2 class="text-2xl font-black text-white mt-2">谁是懂球帝</h2>
+                        </div>
+                        <div class="rounded-full border border-[var(--line)] bg-white/5 px-3 py-1.5 text-xs text-[#cde6d8]">实时排行</div>
+                    </div>
+
+                    <div class="overflow-x-auto rounded-2xl border border-[var(--line)] bg-black/15 flex-1">
+                        <table class="leaderboard-table w-full text-left border-collapse min-w-[640px]">
+                            <thead>
+                                <tr class="border-b border-[var(--line)] text-[11px] text-[#9eb5aa] font-semibold">
+                                    <th class="p-3 pl-4">排名 / 玩家</th>
+                                    <th class="p-3 text-center text-emerald-300">猜对场次</th>
+                                    <th class="p-3 text-center text-sky-300">参加场次</th>
+                                    <th class="p-3 text-center text-[#aab7b0]">总场次</th>
+                                    <th class="p-3 text-center text-amber-300">未结算</th>
+                                    <th class="p-3 text-center text-fuchsia-300">参与率</th>
+                                    <th class="p-3 text-center text-orange-300">正确率</th>
+                                </tr>
+                            </thead>
+                            <tbody id="leaderboard-body" class="text-xs text-[#dce9e1] divide-y divide-white/5"></tbody>
+                        </table>
+                    </div>
+                </section>
+            </div>
+            <button type="button" class="dashboard-logout" onclick="logoutToEntry()">退出登录</button>
+            </div>
+        </section>
     </div>
 
     <script>
         let loggedInUser = null;
+        let activeEntryMode = 'user';
+        let activeDashboardMode = null;
         let globalMatches = {};       // 🧠 核心：在前端缓存所有比赛的详情数据
         let selectedPredictWinner = null; // 存储当前玩家点选的胜队
         let selectedAdminWinner = null;   // 存储当前管理员点选的真实赛果
         let myPredictions = {};           // 🎯 新增：用来存当前登录用户的预测历史
+
+        async function loadAdminUsers() {
+            const listEl = document.getElementById('admin-user-list');
+            const msgEl = document.getElementById('admin-user-msg');
+            if (!listEl) return;
+
+            listEl.innerHTML = '<div class="text-[11px] text-[#7f9488]">正在加载用户列表...</div>';
+            msgEl.innerText = '';
+
+            try {
+                const res = await fetch('/admin/users');
+                const data = await res.json();
+
+                if (!res.ok) {
+                    listEl.innerHTML = '<div class="text-[11px] text-rose-300">用户列表加载失败</div>';
+                    msgEl.className = "text-[11px] text-center font-medium text-rose-300 min-h-4";
+                    msgEl.innerText = data.detail || "用户列表加载失败";
+                    return;
+                }
+
+                if (!Array.isArray(data) || data.length === 0) {
+                    listEl.innerHTML = '<div class="text-[11px] text-[#7f9488]">当前还没有注册用户</div>';
+                    return;
+                }
+
+                listEl.innerHTML = data.map(user => `
+                    <div class="admin-user-item">
+                        <div>
+                            <div class="text-sm font-semibold text-white">${user.username}</div>
+                            <div class="admin-user-meta">注册 IP：${user.ip || '未知'}</div>
+                            <div class="admin-user-meta">最近登录 IP：${user.last_login_ip || '暂无'}</div>
+                        </div>
+                        <button onclick="deleteUserFromServer('${encodeURIComponent(user.username)}', '${user.username.replace(/'/g, "\\'")}')" class="rounded-lg bg-rose-500/85 hover:bg-rose-400 text-white text-[11px] font-bold px-3 py-2 cursor-pointer transition-all">删除</button>
+                    </div>
+                `).join('');
+            } catch (error) {
+                listEl.innerHTML = '<div class="text-[11px] text-rose-300">无法连接后端</div>';
+                msgEl.className = "text-[11px] text-center font-medium text-rose-300 min-h-4";
+                msgEl.innerText = "无法连接后端，请确认服务已启动";
+            }
+        }
+
+        async function deleteUserFromServer(encodedUsername, rawUsername) {
+            const msgEl = document.getElementById('admin-user-msg');
+            const ok = confirm(`确定要删除用户 "${rawUsername}" 吗？该用户的预测记录也会一并删除。`);
+            if (!ok) return;
+
+            msgEl.className = "text-[11px] text-center font-medium text-[#cde6d8] min-h-4";
+            msgEl.innerText = "正在删除用户...";
+
+            try {
+                const res = await fetch(`/admin/delete_user/${encodedUsername}`, {
+                    method: 'DELETE'
+                });
+                const data = await res.json();
+
+                if (!res.ok) {
+                    msgEl.className = "text-[11px] text-center font-medium text-rose-300 min-h-4";
+                    msgEl.innerText = data.detail || "删除用户失败";
+                    return;
+                }
+
+                msgEl.className = "text-[11px] text-center font-medium text-emerald-300 min-h-4";
+                msgEl.innerText = data.message;
+                await loadAdminUsers();
+                await loadLeaderboard();
+            } catch (error) {
+                msgEl.className = "text-[11px] text-center font-medium text-rose-300 min-h-4";
+                msgEl.innerText = "无法连接后端，请确认服务已启动";
+            }
+        }
+
+        function setPage(pageName) {
+            document.querySelectorAll('.page-screen').forEach(section => {
+                section.classList.remove('is-active');
+            });
+            const target = document.getElementById(`page-${pageName}`);
+            if (target) target.classList.add('is-active');
+        }
+
+        function openEntry(mode) {
+            activeEntryMode = mode;
+            const userPanel = document.getElementById('entry-user-panel');
+            const adminPanel = document.getElementById('entry-admin-panel');
+            const title = document.getElementById('entry-title');
+            const text = document.getElementById('entry-text');
+            const kicker = document.getElementById('entry-kicker');
+
+            if (mode === 'admin') {
+                kicker.innerText = 'Admin Access';
+                title.innerText = '管理后台';
+                text.innerText = '完成管理员验证后，进入赛事管理与预测主界面。';
+                userPanel.classList.add('hidden');
+                adminPanel.classList.remove('hidden');
+            } else {
+                kicker.innerText = 'World Cup Predictor';
+                title.innerText = '账号认证';
+                text.innerText = '完成注册或登录后，进入预测主界面。';
+                userPanel.classList.remove('hidden');
+                adminPanel.classList.add('hidden');
+            }
+
+            setPage('entry');
+        }
+
+        function showDashboard(mode) {
+            activeDashboardMode = mode;
+            const adminTools = document.getElementById('dashboard-admin-tools');
+            if (mode === 'admin') {
+                adminTools.classList.add('is-visible');
+                document.getElementById('current-user').innerText = '管理员';
+                loadAdminUsers();
+            } else {
+                adminTools.classList.remove('is-visible');
+                document.getElementById('current-user').innerText = loggedInUser || '未登录（游客）';
+            }
+            setPage('dashboard');
+        }
+
+        function logoutToEntry() {
+            if (activeDashboardMode === 'user') {
+                loggedInUser = null;
+                myPredictions = {};
+                document.getElementById('current-user').innerText = '未登录（游客）';
+                document.getElementById('password').value = '';
+                document.getElementById('auth-msg').className = "text-xs text-center font-medium min-h-4";
+                document.getElementById('auth-msg').innerText = '';
+                openEntry('user');
+                return;
+            }
+
+            if (activeDashboardMode === 'admin') {
+                document.getElementById('admin-pwd').value = '';
+                document.getElementById('admin-entry-msg').className = "text-xs text-center font-medium min-h-4";
+                document.getElementById('admin-entry-msg').innerText = '';
+                openEntry('admin');
+            }
+        }
 
         // 🎯 新增：从后端拉取当前用户的预测数据
         async function loadMyPredictions() {
@@ -173,6 +802,7 @@
         }
 
         window.onload = function() {
+            setPage('home');
             loadMatches();
             loadLeaderboard();
         }
@@ -180,14 +810,26 @@
         // 解锁管理员面板
         function verifyAdmin() {
             const pwd = document.getElementById('admin-pwd').value;
-            const panel = document.getElementById('admin-panel');
-            if (pwd === '123456') {
-                panel.classList.remove('hidden');
-                updateAdminButtons(); // 解锁时顺便渲染一下管理员按钮
-                alert('🔑 管理员后台已解锁！');
-            } else {
-                alert('❌ 密码错误！');
-            }
+            const msgEl = document.getElementById('admin-entry-msg');
+            fetch('/admin/verify', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({password: pwd})
+            }).then(async (res) => {
+                const data = await res.json();
+                if (!res.ok) {
+                    msgEl.className = "text-xs text-center text-rose-300";
+                    msgEl.innerText = data.detail;
+                    return;
+                }
+                msgEl.className = "text-xs text-center text-emerald-300";
+                msgEl.innerText = "验证成功，正在进入后台...";
+                updateAdminButtons();
+                showDashboard('admin');
+            }).catch(() => {
+                msgEl.className = "text-xs text-center text-rose-300";
+                msgEl.innerText = "后台连接失败，请确认服务已启动";
+            });
         }
 
         function updatePredictButtons() {
@@ -199,7 +841,7 @@
             selectedPredictWinner = null; // 清空点选状态
 
             if (!matchId || !globalMatches[matchId]) {
-                container.innerHTML = '<span class="text-xs text-gray-500">暂无比赛选项</span>';
+                container.innerHTML = '<span class="text-xs text-[#7f9488]">暂无比赛选项</span>';
                 if (submitBtn) submitBtn.disabled = true;
                 return;
             }
@@ -212,13 +854,13 @@
                 const myChoice = myPredictions[matchId];
                 let predictText = myChoice ? `（你的预测是：${myChoice}）` : "（你未参与这场预测）";
 
-                container.innerHTML = `<span class="text-xs text-red-400 font-bold flex items-center gap-1">🔒 该赛事已录入真实赛果 [ ${match.result} ]，禁止作答！</span>`;
+                container.innerHTML = `<span class="text-xs text-rose-300 font-bold flex items-center gap-1">该赛事已录入真实赛果 [ ${match.result} ]，禁止作答！</span>`;
                 if (submitBtn) {
                     submitBtn.disabled = true; // 禁用按钮
-                    submitBtn.className = "bg-[#232329] text-gray-500 text-sm font-bold py-2.5 w-full rounded mt-2 cursor-not-allowed border border-[#29292e]";
+                    submitBtn.className = "w-full rounded-xl border border-white/8 bg-white/6 text-[#6f8378] text-sm font-bold py-3.5 cursor-not-allowed";
                     
                     // 🎯 拼接上你的预测结果！
-                    submitBtn.innerText = `🔒 比赛已截止，无法提交 ${predictText}`;
+                    submitBtn.innerText = `比赛已截止，无法提交 ${predictText}`;
                 }
                 return;
             }
@@ -226,8 +868,8 @@
             // ✨ 如果比赛还没开奖，恢复提交按钮的阳光活力 Coral 红状态
             if (submitBtn) {
                 submitBtn.disabled = false;
-                submitBtn.className = "btn-coral text-white text-sm font-bold py-2.5 w-full rounded mt-2 cursor-pointer";
-                submitBtn.innerText = "🎯 提交预测选项";
+                submitBtn.className = "btn-coral text-sm font-bold py-3.5 w-full rounded-xl cursor-pointer";
+                submitBtn.innerText = "提交预测选项";
             }
 
             // 渲染可选的三个按钮
@@ -235,15 +877,15 @@
             choices.forEach(choice => {
                 const btn = document.createElement('button');
                 btn.innerText = choice;
-                btn.className = "bg-[#121214] border border-[#29292e] hover:border-gray-500 text-gray-300 text-xs font-semibold py-2.5 px-4 rounded flex-1 transition-all cursor-pointer text-center";
+                btn.className = "bg-black/20 border border-white/10 hover:border-lime-200/30 text-[#d4e6db] text-xs font-semibold py-3 px-4 rounded-xl flex-1 transition-all cursor-pointer text-center";
                 
                 btn.onclick = () => {
                     Array.from(container.children).forEach(b => {
-                        b.classList.remove('bg-[#ff5252]', 'text-white', 'border-[#ff5252]');
-                        b.classList.add('bg-[#121214]', 'text-gray-300', 'border-[#29292e]');
+                        b.classList.remove('bg-lime-300', 'text-[#102014]', 'border-lime-200');
+                        b.classList.add('bg-black/20', 'text-[#d4e6db]', 'border-white/10');
                     });
-                    btn.classList.remove('bg-[#121214]', 'text-gray-300', 'border-[#29292e]');
-                    btn.classList.add('bg-[#ff5252]', 'text-white', 'border-[#ff5252]');
+                    btn.classList.remove('bg-black/20', 'text-[#d4e6db]', 'border-white/10');
+                    btn.classList.add('bg-lime-300', 'text-[#102014]', 'border-lime-200');
                     selectedPredictWinner = choice;
                 };
                 container.appendChild(btn);
@@ -261,7 +903,7 @@
             selectedAdminWinner = null; // 清空点选状态
 
             if (!matchId || !globalMatches[matchId]) {
-                container.innerHTML = '<span class="text-xs text-gray-500">暂无选项</span>';
+                container.innerHTML = '<span class="text-xs text-[#7f9488]">暂无选项</span>';
                 return;
             }
 
@@ -271,17 +913,17 @@
             choices.forEach(choice => {
                 const btn = document.createElement('button');
                 btn.innerText = choice;
-                btn.className = "bg-[#1a1a1e] border border-[#29292e] hover:border-gray-500 text-gray-400 text-[11px] py-1.5 px-2 rounded flex-1 transition-all cursor-pointer text-center";
+                btn.className = "bg-white/5 border border-white/10 hover:border-amber-200/30 text-[#bfd1c7] text-[11px] py-2 px-2 rounded-xl flex-1 transition-all cursor-pointer text-center";
                 
                 btn.onclick = () => {
                     // 1. 褪去其他按钮样式
                     Array.from(container.children).forEach(b => {
-                        b.classList.remove('bg-amber-500', 'text-black', 'border-amber-500');
-                        b.classList.add('bg-[#1a1a1e]', 'text-gray-400', 'border-[#29292e]');
+                        b.classList.remove('bg-amber-400', 'text-[#1f1605]', 'border-amber-200');
+                        b.classList.add('bg-white/5', 'text-[#bfd1c7]', 'border-white/10');
                     });
                     // 2. 染上管理员专属的高亮琥珀黄（Amber）
-                    btn.classList.remove('bg-[#1a1a1e]', 'text-gray-400', 'border-[#29292e]');
-                    btn.classList.add('bg-amber-500', 'text-black', 'border-amber-500');
+                    btn.classList.remove('bg-white/5', 'text-[#bfd1c7]', 'border-white/10');
+                    btn.classList.add('bg-amber-400', 'text-[#1f1605]', 'border-amber-200');
                     // 3. 记录选择
                     selectedAdminWinner = choice;
                 };
@@ -303,17 +945,16 @@
             if (adminDeleteSelect) adminDeleteSelect.innerHTML = ''; // 🎯 2. 记得清空旧选项，防止重复堆叠
             
             for (const [id, info] of Object.entries(globalMatches)) {
-                // —— 喂给用户预测下拉框 ——
                 let option = document.createElement('option');
                 option.value = id;
-                option.innerText = `⚽ ${id} ${info.result ? `(赛果:${info.result})` : '(未开奖)'}`;
+                option.innerText = `${id} ${info.result ? `(赛果:${info.result})` : '(未开奖)'}`;
                 select.appendChild(option);
-                
+
                 // —— 喂给管理员录入下拉框 ——
                 if (adminSelect) {
                     let adminOption = document.createElement('option');
                     adminOption.value = id;
-                    adminOption.innerText = `⚽ ${id} ${info.result ? `(已结:${info.result})` : '(待开奖)'}`;
+                    adminOption.innerText = `${id} ${info.result ? `(已结:${info.result})` : '(待开奖)'}`;
                     adminSelect.appendChild(adminOption);
                 }
 
@@ -321,7 +962,7 @@
                 if (adminDeleteSelect) {
                     let deleteOption = document.createElement('option');
                     deleteOption.value = id;
-                    deleteOption.innerText = `⚽ ${id} ${info.result ? `(已结:${info.result})` : '(未开奖)'}`;
+                    deleteOption.innerText = `${id} ${info.result ? `(已结:${info.result})` : '(未开奖)'}`;
                     adminDeleteSelect.appendChild(deleteOption);
                 }
             }
@@ -338,7 +979,7 @@
             const msgEl = document.getElementById('admin-delete-msg');
             
             if (!adminDeleteSelect || !adminDeleteSelect.value) {
-                msgEl.className = "text-[11px] text-center font-medium text-yellow-400 mt-1";
+                msgEl.className = "text-[11px] text-center font-medium text-amber-300 mt-1";
                 msgEl.innerText = "请先选择一场要删除的比赛！";
                 return;
             }
@@ -346,7 +987,7 @@
             const matchId = adminDeleteSelect.value;
             
             // 🔒 宿舍防误删安全锁
-            const userInput = confirm(`⚠️ 【危险操作】\n\n确定要彻底删除比赛：\n👉 "${matchId}" 吗？\n\n这会把舍友对本场比赛的所有预测记录连带清空，且绝对无法恢复！`);
+            const userInput = confirm(`【危险操作】\n\n确定要彻底删除比赛：\n"${matchId}" 吗？\n\n这会把舍友对本场比赛的所有预测记录连带清空，且绝对无法恢复！`);
             if (!userInput) return; // 取消就什么都不做
 
             try {
@@ -357,8 +998,8 @@
                 const data = await res.json();
                 
                 if (res.ok) {
-                    msgEl.className = "text-[11px] text-center font-medium text-green-400 mt-1";
-                    msgEl.innerText = `🗑️ ${data.message}`;
+                    msgEl.className = "text-[11px] text-center font-medium text-emerald-300 mt-1";
+                    msgEl.innerText = data.message;
                     
                     // 🔄 核心：删除成功后，重新跑一遍上方的加载函数，让所有滚轮原地刷新！
                     await loadMatches(); 
@@ -366,11 +1007,11 @@
                     // 如果你的系统有排行榜刷新函数，顺便也叫醒它（如果没有这行可以注释掉）
                     if (typeof loadLeaderboard === 'function') loadLeaderboard();
                 } else {
-                    msgEl.className = "text-[11px] text-center font-medium text-red-400 mt-1";
+                    msgEl.className = "text-[11px] text-center font-medium text-rose-300 mt-1";
                     msgEl.innerText = data.detail || "删除失败！";
                 }
             } catch (e) {
-                msgEl.className = "text-[11px] text-center font-medium text-red-400 mt-1";
+                msgEl.className = "text-[11px] text-center font-medium text-rose-300 mt-1";
                 msgEl.innerText = "网络请求失败，请检查后端是否正常运行！";
             }
         }
@@ -389,13 +1030,17 @@
                 body: JSON.stringify({team_a: ta, team_b: tb, date: dt})
             });
             if(res.ok) {
-                msg.className = "text-[11px] text-center text-green-400";
-                msg.innerText = "✅ 比赛发布成功！";
+                msg.className = "text-[11px] text-center text-emerald-300";
+                msg.innerText = "比赛发布成功！";
                 // 自动清空发布框
                 document.getElementById('new-team-a').value = '';
                 document.getElementById('new-team-b').value = '';
                 document.getElementById('new-match-date').value = '';
                 await loadMatches();
+            } else {
+                const data = await res.json();
+                msg.className = "text-[11px] text-center text-rose-300";
+                msg.innerText = data.detail || "发布比赛失败！";
             }
         }
 
@@ -406,8 +1051,8 @@
             
             // ❌ 检查是否通过点击选择了赛果
             if(!selectedAdminWinner) {
-                msg.className = "text-[11px] text-center text-amber-400";
-                msg.innerText = "⚠️ 请先点击选择比赛的真实胜者！";
+                msg.className = "text-[11px] text-center text-amber-300";
+                msg.innerText = "请先点击选择比赛的真实胜者！";
                 return;
             }
 
@@ -418,12 +1063,12 @@
             });
             const data = await res.json();
             if(res.ok) {
-                msg.className = "text-[11px] text-center text-green-400";
-                msg.innerText = "📢 赛果已结算！";
+                msg.className = "text-[11px] text-center text-emerald-300";
+                msg.innerText = "赛果已结算！";
                 await loadMatches();
                 loadLeaderboard();
             } else {
-                msg.className = "text-[11px] text-center text-red-400";
+                msg.className = "text-[11px] text-center text-rose-300";
                 msg.innerText = data.detail;
             }
         }
@@ -432,16 +1077,16 @@
         async function submitPrediction() {
             const msgEl = document.getElementById('predict-msg');
             if (!loggedInUser) {
-                msgEl.className = "text-xs text-center text-amber-400";
-                msgEl.innerText = "⚠️ 请先登录账号！";
+                msgEl.className = "text-xs text-center text-amber-300";
+                msgEl.innerText = "请先登录账号！";
                 return;
             }
             const matchId = document.getElementById('match-select').value;
 
             // ❌ 检查玩家有没有在按钮组里点选
             if (!selectedPredictWinner) {
-                msgEl.className = "text-xs text-center text-amber-400";
-                msgEl.innerText = "⚠️ 请先点击选择你预测的胜出队伍！";
+                msgEl.className = "text-xs text-center text-amber-300";
+                msgEl.innerText = "请先点击选择你预测的胜出队伍！";
                 return;
             }
 
@@ -452,14 +1097,14 @@
             });
             const data = await res.json();
             if(res.ok) {
-                msgEl.className = "text-xs text-center text-green-400";
-                msgEl.innerText = "🎯 预测成功！";
+                msgEl.className = "text-xs text-center text-emerald-300";
+                msgEl.innerText = "预测成功！";
 
                 await loadMyPredictions(); // 🎯 预测成功立刻更新本地缓存
                 updatePredictButtons();    // 重新渲染按钮
                 loadLeaderboard();
             } else {
-                msgEl.className = "text-xs text-center text-red-400";
+                msgEl.className = "text-xs text-center text-rose-300";
                 msgEl.innerText = data.detail;
             }
         }
@@ -469,33 +1114,78 @@
             const u = document.getElementById('username').value;
             const p = document.getElementById('password').value;
             const msgEl = document.getElementById('auth-msg');
+            if (!u || !p) {
+                msgEl.className = "text-xs text-center text-amber-300";
+                msgEl.innerText = "请输入用户名和密码";
+                return;
+            }
 
-            const res = await fetch(url, {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({username: u, password: p})
-            });
-            const data = await res.json();
-            if (res.ok) {
-                msgEl.className = "text-xs text-center text-green-400";
-                msgEl.innerText = "🎉 注册成功！请点击登录";
-            } else {
-                msgEl.className = "text-xs text-center text-red-400";
-                msgEl.innerText = data.detail;
+            msgEl.className = "text-xs text-center text-[#cde6d8]";
+            msgEl.innerText = "正在处理...";
+
+            try {
+                const res = await fetch(url, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({username: u, password: p})
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    msgEl.className = "text-xs text-center text-emerald-300";
+                    msgEl.innerText = "注册成功！选择登录后即可进入";
+                    document.getElementById('password').value = '';
+                    setTimeout(() => {
+                        setPage('home');
+                    }, 900);
+                } else {
+                    msgEl.className = "text-xs text-center text-rose-300";
+                    msgEl.innerText = data.detail;
+                }
+            } catch (error) {
+                msgEl.className = "text-xs text-center text-rose-300";
+                msgEl.innerText = "无法连接后端，请先启动服务后再注册";
             }
         }
 
-        // 修改后的登录函数
         async function handleLogin() {
             const u = document.getElementById('username').value;
-            if(!u) return;
-            loggedInUser = u;
-            document.getElementById('current-user').innerText = `🔥 ${u}`;
-            document.getElementById('auth-msg').className = "text-xs text-center text-green-400";
-            document.getElementById('auth-msg').innerText = "登录成功！";
-            
-            await loadMyPredictions(); // 🎯 登录成功立刻拉取历史预测
-            updatePredictButtons();    // 刷新按钮状态
+            const p = document.getElementById('password').value;
+            const msgEl = document.getElementById('auth-msg');
+            if(!u || !p) {
+                msgEl.className = "text-xs text-center text-amber-300";
+                msgEl.innerText = "请输入用户名和密码";
+                return;
+            }
+
+            msgEl.className = "text-xs text-center text-[#cde6d8]";
+            msgEl.innerText = "正在登录...";
+
+            try {
+                const res = await fetch('/user/login', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({username: u, password: p})
+                });
+                const data = await res.json();
+
+                if (!res.ok) {
+                    msgEl.className = "text-xs text-center text-rose-300";
+                    msgEl.innerText = data.detail;
+                    return;
+                }
+
+                loggedInUser = data.username;
+                document.getElementById('current-user').innerText = loggedInUser;
+                msgEl.className = "text-xs text-center text-emerald-300";
+                msgEl.innerText = "登录成功！";
+
+                await loadMyPredictions();
+                updatePredictButtons();
+                showDashboard('user');
+            } catch (error) {
+                msgEl.className = "text-xs text-center text-rose-300";
+                msgEl.innerText = "无法连接后端，请先启动服务后再登录";
+            }
         }
 
         // 🎯 切换密码可见性（勾选显示明文，取消勾选隐藏）
@@ -528,28 +1218,28 @@
                 
                 // 健壮性检查：确保后端吐出的数据是一个合法数组
                 if (!Array.isArray(list) || list.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="7" class="text-gray-500 text-center py-4">暂无排行数据</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="7" class="text-[#7f9488] text-center py-6">暂无排行数据</td></tr>';
                     return;
                 }
 
                 let rowsHtml = '';
                 list.forEach((item, index) => {
                     // 🏅 动态计算奖牌与序号
-                    let medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `&nbsp;&nbsp;${index + 1}.`;
+                    let medal = `${index + 1}.`;
                     
                     // 🔨 纯粹生成表格行（<tr>），无缝塞进你现有的彩色表头下方
                     rowsHtml += `
-                        <tr class="hover:bg-[#18181c] transition-colors border-b border-[#1f1f23] last:border-b-0">
-                            <td class="p-2.5 pl-3 font-semibold text-gray-200 flex items-center gap-1">
+                        <tr class="transition-colors border-b border-white/6 last:border-b-0 hover:bg-white/4">
+                            <td class="p-3 pl-4 font-semibold text-[#dce9e1] flex items-center gap-1">
                                 <span>${medal}</span>
                                 <span class="text-white">${item.username}</span>
                             </td>
-                            <td class="p-2.5 text-center font-bold text-green-400">${item.score}场</td>
-                            <td class="p-2.5 text-center text-blue-400">${item.attended_count}场</td>
-                            <td class="p-2.5 text-center text-gray-500">${item.all_count}场</td>
-                            <td class="p-2.5 text-center text-yellow-500">${item.unsettled_count}场</td>
-                            <td class="p-2.5 text-center text-purple-400 font-medium">${item.accuracy_attended}</td>
-                            <td class="p-2.5 text-center text-orange-400 font-bold font-mono">${item.accuracy}</td>
+                            <td class="p-3 text-center font-bold text-emerald-300">${item.score}场</td>
+                            <td class="p-3 text-center text-sky-300">${item.attended_count}场</td>
+                            <td class="p-3 text-center text-[#96a79f]">${item.all_count}场</td>
+                            <td class="p-3 text-center text-amber-300">${item.unsettled_count}场</td>
+                            <td class="p-3 text-center text-fuchsia-300 font-medium">${item.accuracy_attended}</td>
+                            <td class="p-3 text-center text-orange-300 font-bold font-mono">${item.accuracy}</td>
                         </tr>
                     `;
                 });
