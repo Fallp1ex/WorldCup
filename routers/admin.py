@@ -76,6 +76,7 @@
 # routers/admin.py
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
+from datetime import datetime, timedelta
 import database
 
 router = APIRouter(prefix="/admin", tags=["开发者后台"])
@@ -95,17 +96,28 @@ class SetResultModel(BaseModel):
 class AdminAuthModel(BaseModel):
     password: str
 
+class RestrictionModel(BaseModel):
+    username: str
+    duration_hours: int
+
+class LiftRestrictionModel(BaseModel):
+    username: str
+
 @router.get("/users")
 def list_users():
     users = []
     for username, info in database.USER_DATABASE.items():
+        banned, ban_until = database.is_user_restricted(username, "predict")
         users.append({
             "username": username,
             "ip": info.get("ip", ""),
             "created_at": info.get("created_at"),
-            "last_login_ip": info.get("last_login_ip")
+            "last_login_ip": info.get("last_login_ip"),
+            "banned": banned,
+            "ban_until": ban_until.isoformat(timespec="seconds") if ban_until else None
         })
     users.sort(key=lambda item: item["username"].lower())
+    database.save_to_disk()
     return users
 
 @router.delete("/delete_user/{username}")
@@ -122,6 +134,9 @@ def delete_user(username: str):
 
     database.PREDICTIONS_DATABASE = [
         p for p in database.PREDICTIONS_DATABASE if p["username"] != username
+    ]
+    database.FORUM_POSTS_DATABASE = [
+        post for post in database.FORUM_POSTS_DATABASE if post["username"] != username
     ]
 
     database.log_event("user_delete", f"删除用户 {username}", actor="admin")
@@ -146,10 +161,13 @@ def add_match(match: AddMatchModel):
     
     if not ta or not tb or not dt:
         raise HTTPException(status_code=400, detail="球队名称和比赛时间不能为空！")
+    parsed_dt = database.parse_datetime(dt)
+    if not parsed_dt:
+        raise HTTPException(status_code=400, detail="比赛时间格式不正确，请使用 YYYY-MM-DD HH:MM")
 
-    # 🎯 核心逻辑：自动拼接出你想要的动态字符串ID，例如 "阿根廷vs法国 2022Dec26"
-    custom_match_id = f"{ta}vs{tb} {dt}"
-    reverse_match_id = f"{tb}vs{ta} {dt}"  # 👈 新增：顺便算出主客队颠倒的 ID
+    normalized_dt = parsed_dt.strftime("%Y-%m-%d %H:%M")
+    custom_match_id = f"{ta}vs{tb} {normalized_dt}"
+    reverse_match_id = f"{tb}vs{ta} {normalized_dt}"
     
     if custom_match_id in database.MATCHES_DATABASE or reverse_match_id in database.MATCHES_DATABASE:
         raise HTTPException(status_code=400, detail="该比赛（或对应主客场赛事）已存在，请勿重复添加！")
@@ -158,7 +176,7 @@ def add_match(match: AddMatchModel):
     database.MATCHES_DATABASE[custom_match_id] = {
         "team_a": ta,
         "team_b": tb,
-        "date": dt,
+        "date": normalized_dt,
         "result": None
     }
 
@@ -173,6 +191,7 @@ def delete_match(match_id: str):  # 改为 str
     
     database.MATCHES_DATABASE.pop(match_id)
     database.PREDICTIONS_DATABASE = [p for p in database.PREDICTIONS_DATABASE if p["match_id"] != match_id]
+    database.FORUM_POSTS_DATABASE = [post for post in database.FORUM_POSTS_DATABASE if post["match_id"] != match_id]
 
     database.log_event("match_delete", f"删除比赛 {match_id}", actor="admin")
     database.save_to_disk()
@@ -194,6 +213,44 @@ def set_result(data: SetResultModel):
     database.log_event("match_set_result", f"录入赛果 {data.match_id} -> {data.result}", actor="admin")
     database.save_to_disk()
     return {"message": f"赛事 [{data.match_id}] 结果已成功录入为: {data.result}"}
+
+@router.post("/set_restriction")
+def set_restriction(data: RestrictionModel):
+    username = data.username.strip()
+
+    if username not in database.USER_DATABASE:
+        raise HTTPException(status_code=404, detail="找不到该用户")
+    if data.duration_hours not in {1, 24, 240}:
+        raise HTTPException(status_code=400, detail="只支持封禁 1 小时、1 天或 10 天")
+
+    until = datetime.now() + timedelta(hours=data.duration_hours)
+    database.set_user_restriction(username, "all", until.isoformat(timespec="seconds"))
+    database.log_event(
+        "user_restriction_set",
+        f"管理员将 {username} 的论坛与预测权限禁用至 {until.strftime('%Y-%m-%d %H:%M')}",
+        actor="admin"
+    )
+    database.save_to_disk()
+    return {
+        "message": f"已封禁 {username} 的论坛与预测功能",
+        "until": until.isoformat(timespec="seconds")
+    }
+
+@router.post("/lift_restriction")
+def lift_restriction(data: LiftRestrictionModel):
+    username = data.username.strip()
+
+    if username not in database.USER_DATABASE:
+        raise HTTPException(status_code=404, detail="找不到该用户")
+
+    database.clear_user_restriction(username, "all")
+    database.log_event(
+        "user_restriction_lift",
+        f"管理员解除 {username} 的论坛与预测权限限制",
+        actor="admin"
+    )
+    database.save_to_disk()
+    return {"message": f"已解除 {username} 的封禁"}
 
 # @router.delete("/delete_match/{match_id}")
 # def delete_match(match_id: str):

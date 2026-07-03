@@ -24,7 +24,10 @@ class LeaderboardItemModel(BaseModel):
 # ==================== 【接口逻辑】 ====================
 @router.get("/matches")
 def get_matches():
-    return database.MATCHES_DATABASE
+    return {
+        match_id: database.normalize_match(match_id, match)
+        for match_id, match in database.MATCHES_DATABASE.items()
+    }
 
 @router.post("/submit")
 def make_prediction(prediction: PredictModel):
@@ -33,12 +36,19 @@ def make_prediction(prediction: PredictModel):
         raise HTTPException(status_code=400, detail="请先注册账号！")
     if prediction.match_id not in database.MATCHES_DATABASE:
         raise HTTPException(status_code=400, detail="找不到这场比赛！")
+
+    predict_blocked, predict_until = database.is_user_restricted(prediction.username, "predict")
+    if predict_blocked:
+        raise HTTPException(
+            status_code=403,
+            detail=f"你的账号已被封禁，解除时间：{predict_until.strftime('%Y-%m-%d %H:%M')}"
+        )
     
-    # 🎯 【核心新增】：防马后炮机制
-    # 取出这场比赛的详情，看看管理员有没有录入最终结果
     match = database.MATCHES_DATABASE[prediction.match_id]
-    if match.get("result") is not None:
-        raise HTTPException(status_code=400, detail="该赛事已录入真实赛果，已截止提交预测！")
+    if database.is_match_locked(match):
+        if match.get("result") is not None:
+            raise HTTPException(status_code=400, detail="该赛事已录入真实赛果，已截止提交预测！")
+        raise HTTPException(status_code=400, detail="该赛事已到开赛时间，预测入口已关闭！")
 
     # 💡 【顺便优化】：去重逻辑
     # 如果用户之前对这场比赛有过预测，先在列表中清除老记录，实现“覆盖更新”
@@ -51,7 +61,8 @@ def make_prediction(prediction: PredictModel):
     database.PREDICTIONS_DATABASE.append({
         "username": prediction.username,
         "match_id": prediction.match_id,
-        "predicted_winner": prediction.predicted_winner
+        "predicted_winner": prediction.predicted_winner,
+        "submitted_at": database.now_iso()
     })
     database.log_event(
         "prediction_submit",
@@ -144,9 +155,16 @@ def get_leaderboard():
 
 @router.get("/my/{username}")
 def get_user_predictions(username: str):
-    # 过滤出当前用户的所有预测，打包成 { match_id: predicted_winner } 的字典返给前端
     user_preds = {}
     for p in database.PREDICTIONS_DATABASE:
         if p["username"] == username:
-            user_preds[p["match_id"]] = p["predicted_winner"]
+            match = database.MATCHES_DATABASE.get(p["match_id"], {})
+            user_preds[p["match_id"]] = {
+                "predicted_winner": p["predicted_winner"],
+                "submitted_at": p.get("submitted_at"),
+                "team_a": match.get("team_a"),
+                "team_b": match.get("team_b"),
+                "result": match.get("result"),
+                "date": match.get("date")
+            }
     return user_preds

@@ -3,6 +3,9 @@
     "ips": [],
     "matches": {},
     "predictions": [],
-    "config": {},
+    "forum_posts": [],
+    "config": {
+        "forum_post_counter": 1
+    },
     "activity_log": []
 }

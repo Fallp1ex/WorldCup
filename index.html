@@ -403,6 +403,163 @@
             line-height: 1.6;
         }
 
+        .forum-entry-list,
+        .forum-match-list,
+        .forum-post-list,
+        .search-result-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .forum-entry-item,
+        .forum-match-item,
+        .search-result-item,
+        .prediction-item {
+            border-radius: 18px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(255, 255, 255, 0.04);
+            padding: 14px 16px;
+        }
+
+        .forum-entry-item,
+        .forum-match-item {
+            cursor: pointer;
+            transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+        }
+
+        .forum-entry-item:hover,
+        .forum-match-item:hover,
+        .forum-entry-item.is-active,
+        .forum-match-item.is-active {
+            transform: translateY(-1px);
+            border-color: rgba(200, 255, 101, 0.28);
+            background: rgba(200, 255, 101, 0.08);
+        }
+
+        .forum-shell {
+            width: 100%;
+            display: grid;
+            grid-template-columns: 300px minmax(0, 1fr) 320px;
+            gap: 20px;
+            align-items: stretch;
+        }
+
+        .forum-panel {
+            min-height: calc(100vh - 32px);
+        }
+
+        .forum-admin-panel {
+            display: none;
+        }
+
+        .forum-admin-panel.is-visible {
+            display: block;
+        }
+
+        .forum-post-meta,
+        .prediction-meta,
+        .forum-match-meta,
+        .forum-entry-meta {
+            font-size: 11px;
+            color: #91a79b;
+            line-height: 1.6;
+        }
+
+        .forum-post-content,
+        .search-result-content {
+            margin-top: 8px;
+            color: #eaf7ef;
+            line-height: 1.7;
+            font-size: 14px;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .prediction-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-height: 260px;
+            overflow-y: auto;
+        }
+
+        .mute-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 10px;
+        }
+
+        .mini-action {
+            border-radius: 999px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.05);
+            color: #d5e7dd;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 6px 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .mini-action:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(200, 255, 101, 0.26);
+        }
+
+        .mini-action.is-danger:hover {
+            border-color: rgba(255, 107, 107, 0.34);
+        }
+
+        .chat-thread {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .chat-bubble {
+            max-width: 82%;
+            border-radius: 20px;
+            padding: 12px 14px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .chat-bubble.is-self {
+            margin-left: auto;
+            background: rgba(200, 255, 101, 0.12);
+            border-color: rgba(200, 255, 101, 0.18);
+        }
+
+        .chat-meta {
+            font-size: 11px;
+            color: #91a79b;
+        }
+
+        .chat-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+            flex-wrap: wrap;
+        }
+
+        .chat-replies {
+            margin-top: 10px;
+            padding-left: 12px;
+            border-left: 1px solid rgba(255, 255, 255, 0.08);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .chat-reply-toggle {
+            margin-top: 8px;
+            font-size: 12px;
+            color: #9eb5aa;
+            cursor: pointer;
+        }
+
         @keyframes fadeUp {
             from {
                 opacity: 0;
@@ -445,7 +602,15 @@
                 grid-template-columns: 1fr;
             }
 
+            .forum-shell {
+                grid-template-columns: 1fr;
+            }
+
             .dashboard-panel {
+                min-height: auto;
+            }
+
+            .forum-panel {
                 min-height: auto;
             }
 
@@ -537,6 +702,15 @@
                             <div class="text-lg text-[#dfffb0] font-bold" id="current-user">未登录（游客）</div>
                         </div>
 
+                        <div class="divider"></div>
+
+                        <div class="space-y-3">
+                            <div class="text-xs font-bold tracking-[0.18em] text-[#dfffb0] uppercase">论坛</div>
+                            <div class="forum-entry-list" id="dashboard-forum-list">
+                                <div class="text-[11px] text-[#7f9488]">暂无论坛分区</div>
+                            </div>
+                        </div>
+
                         <div id="dashboard-admin-tools" class="admin-tools space-y-4">
                             <div class="divider"></div>
                             <div class="text-xs font-bold tracking-[0.18em] text-[#ffd66b] uppercase">Admin Tools</div>
@@ -544,7 +718,7 @@
                                 <div class="text-xs font-bold text-[#dfffb0]">快捷发布新比赛</div>
                                 <input type="text" id="new-team-a" class="input-dark p-2.5 text-xs" placeholder="主队（如：阿根廷）">
                                 <input type="text" id="new-team-b" class="input-dark p-2.5 text-xs" placeholder="客队（如：法国）">
-                                <input type="text" id="new-match-date" class="input-dark p-2.5 text-xs" placeholder="时间（如：2022Dec26）">
+                                <input type="text" id="new-match-date" class="input-dark p-2.5 text-xs" placeholder="时间（格式：2026-07-03 18:30）">
                                 <button onclick="adminAddMatch()" class="w-full rounded-xl bg-lime-300 hover:bg-lime-200 text-[#102014] text-xs font-bold py-2.5 cursor-pointer transition-all">发布比赛</button>
                             </div>
 
@@ -580,6 +754,17 @@
                                 </div>
                                 <div id="admin-user-msg" class="text-[11px] text-center font-medium min-h-4"></div>
                             </div>
+
+                            <div class="divider"></div>
+
+                            <div class="space-y-3">
+                                <div class="text-xs font-bold text-[#dfffb0]">论坛关键词检索</div>
+                                <input type="text" id="forum-search-keyword" class="input-dark p-2.5 text-xs" placeholder="输入用户名或关键词">
+                                <button onclick="searchForumPosts()" class="w-full rounded-xl bg-sky-400/85 hover:bg-sky-300 text-[#08151c] text-xs font-bold py-2.5 cursor-pointer transition-all">搜索论坛发言</button>
+                                <div id="forum-search-results" class="search-result-list">
+                                    <div class="text-[11px] text-[#7f9488]">输入关键词后可查看对应评论</div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </aside>
@@ -603,6 +788,15 @@
                         </div>
                         <button id="submit-predict-btn" onclick="submitPrediction()" class="btn-coral text-sm font-bold py-3.5 w-full rounded-xl cursor-pointer">提交预测选项</button>
                         <div id="predict-msg" class="text-xs text-center font-medium min-h-4"></div>
+                        <div class="panel-soft p-4 space-y-3">
+                            <div class="flex items-center justify-between gap-3">
+                                <div class="text-xs font-bold tracking-[0.18em] text-[#dfffb0] uppercase">My Prediction</div>
+                                <div class="text-[11px] text-[#9eb5aa]">你的选择会记录在这里</div>
+                            </div>
+                            <div id="my-prediction-summary" class="prediction-list">
+                                <div class="text-[11px] text-[#7f9488]">当前还没有预测记录</div>
+                            </div>
+                        </div>
                     </div>
                 </main>
 
@@ -636,92 +830,96 @@
             <button type="button" class="dashboard-logout" onclick="logoutToEntry()">退出登录</button>
             </div>
         </section>
+
+        <section id="page-forum" class="page-screen">
+            <div class="dashboard-shell">
+                <div class="forum-shell">
+                    <aside class="panel p-5 lg:p-6 space-y-4 forum-panel">
+                        <div>
+                            <div class="text-xs font-bold tracking-[0.18em] text-[#dfffb0] uppercase">Forum Matches</div>
+                            <div class="text-2xl font-black text-white mt-2">比赛讨论区</div>
+                        </div>
+                        <div id="forum-match-list" class="forum-match-list">
+                            <div class="text-[11px] text-[#7f9488]">暂无比赛论坛</div>
+                        </div>
+                    </aside>
+
+                    <main class="panel p-5 lg:p-6 forum-panel flex flex-col gap-4">
+                        <div class="flex items-start justify-between gap-4">
+                            <div>
+                                <div class="text-xs font-bold tracking-[0.18em] text-[#dfffb0] uppercase">Discussion</div>
+                                <div class="text-2xl font-black text-white mt-2" id="forum-title">请选择一个比赛论坛</div>
+                                <div class="forum-match-meta mt-2" id="forum-subtitle">论坛将按比赛分区显示所有用户评论</div>
+                            </div>
+                            <button type="button" class="btn-secondary text-xs font-bold py-2.5 px-4 rounded-xl cursor-pointer" onclick="backToDashboard()">返回主界面</button>
+                        </div>
+
+                        <div id="forum-compose-box" class="panel-soft p-4 space-y-3">
+                            <div class="text-xs font-bold text-[#dfffb0]">发布一条讨论</div>
+                            <textarea id="forum-post-content" class="input-dark p-3 text-sm min-h-[120px]" placeholder="说说你对这场比赛的判断、阵容看法或比分倾向"></textarea>
+                            <button onclick="submitForumPost()" class="btn-coral text-sm font-bold py-3 px-4 rounded-xl cursor-pointer">发布评论</button>
+                            <div id="forum-post-msg" class="text-xs text-center font-medium min-h-4"></div>
+                        </div>
+
+                        <div id="forum-post-list" class="forum-post-list flex-1 overflow-y-auto pr-1">
+                            <div class="text-[11px] text-[#7f9488]">进入比赛论坛后即可查看评论</div>
+                        </div>
+                    </main>
+
+                    <aside id="forum-admin-panel" class="panel p-5 lg:p-6 forum-panel forum-admin-panel space-y-4">
+                        <div>
+                            <div class="text-xs font-bold tracking-[0.18em] text-[#ffd66b] uppercase">Admin Moderation</div>
+                            <div class="text-2xl font-black text-white mt-2">论坛管理</div>
+                        </div>
+                        <input type="text" id="forum-admin-search-keyword" class="input-dark p-3 text-sm" placeholder="搜索评论关键词或用户名">
+                        <button onclick="searchForumPosts('admin')" class="w-full rounded-xl bg-amber-400 hover:bg-amber-300 text-[#1f1605] text-sm font-bold py-3 cursor-pointer transition-all">搜索相关评论</button>
+                        <div id="forum-admin-search-results" class="search-result-list">
+                            <div class="text-[11px] text-[#7f9488]">管理员可搜索、删评、禁言</div>
+                        </div>
+                    </aside>
+                </div>
+                <button type="button" class="dashboard-logout" onclick="backToDashboard()">返回主界面</button>
+            </div>
+        </section>
     </div>
 
     <script>
         let loggedInUser = null;
         let activeEntryMode = 'user';
         let activeDashboardMode = null;
-        let globalMatches = {};       // 🧠 核心：在前端缓存所有比赛的详情数据
-        let selectedPredictWinner = null; // 存储当前玩家点选的胜队
-        let selectedAdminWinner = null;   // 存储当前管理员点选的真实赛果
-        let myPredictions = {};           // 🎯 新增：用来存当前登录用户的预测历史
+        let globalMatches = {};
+        let forumMatches = [];
+        let selectedPredictWinner = null;
+        let selectedAdminWinner = null;
+        let myPredictions = {};
+        let currentUserStatus = { banned: false, ban_until: null };
+        let currentForumMatchId = null;
+        let forumReplyTarget = null;
+        let expandedReplyThreads = {};
 
-        async function loadAdminUsers() {
-            const listEl = document.getElementById('admin-user-list');
-            const msgEl = document.getElementById('admin-user-msg');
-            if (!listEl) return;
-
-            listEl.innerHTML = '<div class="text-[11px] text-[#7f9488]">正在加载用户列表...</div>';
-            msgEl.innerText = '';
-
-            try {
-                const res = await fetch('/admin/users');
-                const data = await res.json();
-
-                if (!res.ok) {
-                    listEl.innerHTML = '<div class="text-[11px] text-rose-300">用户列表加载失败</div>';
-                    msgEl.className = "text-[11px] text-center font-medium text-rose-300 min-h-4";
-                    msgEl.innerText = data.detail || "用户列表加载失败";
-                    return;
-                }
-
-                if (!Array.isArray(data) || data.length === 0) {
-                    listEl.innerHTML = '<div class="text-[11px] text-[#7f9488]">当前还没有注册用户</div>';
-                    return;
-                }
-
-                listEl.innerHTML = data.map(user => `
-                    <div class="admin-user-item">
-                        <div>
-                            <div class="text-sm font-semibold text-white">${user.username}</div>
-                            <div class="admin-user-meta">注册 IP：${user.ip || '未知'}</div>
-                            <div class="admin-user-meta">最近登录 IP：${user.last_login_ip || '暂无'}</div>
-                        </div>
-                        <button onclick="deleteUserFromServer('${encodeURIComponent(user.username)}', '${user.username.replace(/'/g, "\\'")}')" class="rounded-lg bg-rose-500/85 hover:bg-rose-400 text-white text-[11px] font-bold px-3 py-2 cursor-pointer transition-all">删除</button>
-                    </div>
-                `).join('');
-            } catch (error) {
-                listEl.innerHTML = '<div class="text-[11px] text-rose-300">无法连接后端</div>';
-                msgEl.className = "text-[11px] text-center font-medium text-rose-300 min-h-4";
-                msgEl.innerText = "无法连接后端，请确认服务已启动";
-            }
+        function escapeHtml(value) {
+            return String(value ?? '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
         }
 
-        async function deleteUserFromServer(encodedUsername, rawUsername) {
-            const msgEl = document.getElementById('admin-user-msg');
-            const ok = confirm(`确定要删除用户 "${rawUsername}" 吗？该用户的预测记录也会一并删除。`);
-            if (!ok) return;
+        function formatDateTime(value) {
+            if (!value) return '未设置时间';
+            const normalized = value.includes('T') ? value : value.replace(' ', 'T');
+            const date = new Date(normalized);
+            if (Number.isNaN(date.getTime())) return value;
+            return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+        }
 
-            msgEl.className = "text-[11px] text-center font-medium text-[#cde6d8] min-h-4";
-            msgEl.innerText = "正在删除用户...";
-
-            try {
-                const res = await fetch(`/admin/delete_user/${encodedUsername}`, {
-                    method: 'DELETE'
-                });
-                const data = await res.json();
-
-                if (!res.ok) {
-                    msgEl.className = "text-[11px] text-center font-medium text-rose-300 min-h-4";
-                    msgEl.innerText = data.detail || "删除用户失败";
-                    return;
-                }
-
-                msgEl.className = "text-[11px] text-center font-medium text-emerald-300 min-h-4";
-                msgEl.innerText = data.message;
-                await loadAdminUsers();
-                await loadLeaderboard();
-            } catch (error) {
-                msgEl.className = "text-[11px] text-center font-medium text-rose-300 min-h-4";
-                msgEl.innerText = "无法连接后端，请确认服务已启动";
-            }
+        function getRestrictionText(user) {
+            return user.banned ? `已封禁至 ${formatDateTime(user.ban_until)}` : '权限正常';
         }
 
         function setPage(pageName) {
-            document.querySelectorAll('.page-screen').forEach(section => {
-                section.classList.remove('is-active');
-            });
+            document.querySelectorAll('.page-screen').forEach(section => section.classList.remove('is-active'));
             const target = document.getElementById(`page-${pageName}`);
             if (target) target.classList.add('is-active');
         }
@@ -737,13 +935,13 @@
             if (mode === 'admin') {
                 kicker.innerText = 'Admin Access';
                 title.innerText = '管理后台';
-                text.innerText = '完成管理员验证后，进入赛事管理与预测主界面。';
+                text.innerText = '完成管理员验证后，进入赛事管理、论坛管理与预测主界面。';
                 userPanel.classList.add('hidden');
                 adminPanel.classList.remove('hidden');
             } else {
                 kicker.innerText = 'World Cup Predictor';
                 title.innerText = '账号认证';
-                text.innerText = '完成注册或登录后，进入预测主界面。';
+                text.innerText = '完成注册或登录后，进入预测、排行与论坛主界面。';
                 userPanel.classList.remove('hidden');
                 adminPanel.classList.add('hidden');
             }
@@ -754,21 +952,38 @@
         function showDashboard(mode) {
             activeDashboardMode = mode;
             const adminTools = document.getElementById('dashboard-admin-tools');
+            const forumAdminPanel = document.getElementById('forum-admin-panel');
+            const composeBox = document.getElementById('forum-compose-box');
+
             if (mode === 'admin') {
                 adminTools.classList.add('is-visible');
+                forumAdminPanel.classList.add('is-visible');
+                composeBox.classList.add('hidden');
                 document.getElementById('current-user').innerText = '管理员';
                 loadAdminUsers();
             } else {
                 adminTools.classList.remove('is-visible');
+                forumAdminPanel.classList.remove('is-visible');
+                composeBox.classList.remove('hidden');
                 document.getElementById('current-user').innerText = loggedInUser || '未登录（游客）';
             }
+
+            setPage('dashboard');
+        }
+
+        function backToDashboard() {
             setPage('dashboard');
         }
 
         function logoutToEntry() {
+            currentForumMatchId = null;
+            document.getElementById('forum-post-content').value = '';
+            document.getElementById('forum-post-msg').innerText = '';
+
             if (activeDashboardMode === 'user') {
                 loggedInUser = null;
                 myPredictions = {};
+                currentUserStatus = { banned: false, ban_until: null };
                 document.getElementById('current-user').innerText = '未登录（游客）';
                 document.getElementById('password').value = '';
                 document.getElementById('auth-msg').className = "text-xs text-center font-medium min-h-4";
@@ -785,104 +1000,256 @@
             }
         }
 
-        // 🎯 新增：从后端拉取当前用户的预测数据
+        async function loadUserStatus() {
+            if (!loggedInUser) return;
+            try {
+                const res = await fetch(`/user/status/${encodeURIComponent(loggedInUser)}`);
+                if (res.ok) currentUserStatus = await res.json();
+            } catch (error) {
+                console.error('加载用户状态失败', error);
+            }
+        }
+
         async function loadMyPredictions() {
             if (!loggedInUser) {
                 myPredictions = {};
+                renderPredictionSummary();
                 return;
             }
             try {
-                const res = await fetch(`/predict/my/${loggedInUser}`);
+                const res = await fetch(`/predict/my/${encodeURIComponent(loggedInUser)}`);
                 if (res.ok) {
                     myPredictions = await res.json();
                 }
-            } catch (e) {
-                console.error("加载个人预测失败", e);
+            } catch (error) {
+                console.error('加载个人预测失败', error);
+            }
+            renderPredictionSummary();
+        }
+
+        function renderPredictionSummary() {
+            const box = document.getElementById('my-prediction-summary');
+            if (!box) return;
+
+            const entries = Object.entries(myPredictions);
+            if (!loggedInUser || entries.length === 0) {
+                box.innerHTML = '<div class="text-[11px] text-[#7f9488]">当前还没有预测记录</div>';
+                return;
+            }
+
+            box.innerHTML = entries.map(([matchId, item]) => {
+                const title = `${item.team_a || ''} vs ${item.team_b || ''}`.trim();
+                const resultText = item.result ? `真实赛果：${item.result}` : '尚未结算';
+                return `
+                    <div class="prediction-item">
+                        <div class="text-sm font-semibold text-white">${escapeHtml(title || matchId)}</div>
+                        <div class="prediction-meta">开赛时间：${escapeHtml(formatDateTime(item.date))}</div>
+                        <div class="mt-2 text-sm text-[#dfffb0]">${escapeHtml(loggedInUser)} 预测：${escapeHtml(item.predicted_winner)}</div>
+                        <div class="prediction-meta mt-1">${escapeHtml(resultText)}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        async function loadAdminUsers() {
+            const listEl = document.getElementById('admin-user-list');
+            const msgEl = document.getElementById('admin-user-msg');
+            listEl.innerHTML = '<div class="text-[11px] text-[#7f9488]">正在加载用户列表...</div>';
+            msgEl.innerText = '';
+
+            try {
+                const res = await fetch('/admin/users');
+                const data = await res.json();
+
+                if (!res.ok) {
+                    listEl.innerHTML = '<div class="text-[11px] text-rose-300">用户列表加载失败</div>';
+                    msgEl.className = "text-[11px] text-center font-medium text-rose-300 min-h-4";
+                    msgEl.innerText = data.detail || '用户列表加载失败';
+                    return;
+                }
+
+                if (!Array.isArray(data) || data.length === 0) {
+                    listEl.innerHTML = '<div class="text-[11px] text-[#7f9488]">当前还没有注册用户</div>';
+                    return;
+                }
+
+                listEl.innerHTML = data.map(user => `
+                    <div class="admin-user-item">
+                        <div class="flex-1">
+                            <div class="text-sm font-semibold text-white">${escapeHtml(user.username)}</div>
+                            <div class="admin-user-meta">注册 IP：${escapeHtml(user.ip || '未知')}</div>
+                            <div class="admin-user-meta">最近登录 IP：${escapeHtml(user.last_login_ip || '暂无')}</div>
+                            <div class="admin-user-meta">${escapeHtml(getRestrictionText(user))}</div>
+                            <div class="mute-actions">
+                                <button class="mini-action" onclick="applyRestriction('${encodeURIComponent(user.username)}', 1)">封禁 1 小时</button>
+                                <button class="mini-action" onclick="applyRestriction('${encodeURIComponent(user.username)}', 24)">封禁 1 天</button>
+                                <button class="mini-action" onclick="applyRestriction('${encodeURIComponent(user.username)}', 240)">封禁 10 天</button>
+                                <button class="mini-action" onclick="liftRestriction('${encodeURIComponent(user.username)}')">解封</button>
+                            </div>
+                        </div>
+                        <button onclick="deleteUserFromServer('${encodeURIComponent(user.username)}')" class="rounded-lg bg-rose-500/85 hover:bg-rose-400 text-white text-[11px] font-bold px-3 py-2 cursor-pointer transition-all">删除</button>
+                    </div>
+                `).join('');
+            } catch (error) {
+                listEl.innerHTML = '<div class="text-[11px] text-rose-300">无法连接后端</div>';
+                msgEl.className = "text-[11px] text-center font-medium text-rose-300 min-h-4";
+                msgEl.innerText = '无法连接后端，请确认服务已启动';
             }
         }
 
-        window.onload = function() {
-            setPage('home');
-            loadMatches();
-            loadLeaderboard();
+        async function deleteUserFromServer(encodedUsername) {
+            const username = decodeURIComponent(encodedUsername);
+            const msgEl = document.getElementById('admin-user-msg');
+            if (!confirm(`确定要删除用户 "${username}" 吗？该用户的预测和论坛记录也会一并删除。`)) return;
+
+            msgEl.className = "text-[11px] text-center font-medium text-[#cde6d8] min-h-4";
+            msgEl.innerText = '正在删除用户...';
+
+            try {
+                const res = await fetch(`/admin/delete_user/${encodedUsername}`, { method: 'DELETE' });
+                const data = await res.json();
+                if (!res.ok) {
+                    msgEl.className = "text-[11px] text-center font-medium text-rose-300 min-h-4";
+                    msgEl.innerText = data.detail || '删除用户失败';
+                    return;
+                }
+                msgEl.className = "text-[11px] text-center font-medium text-emerald-300 min-h-4";
+                msgEl.innerText = data.message;
+                await loadAdminUsers();
+                await loadLeaderboard();
+                await loadForumMatches();
+                if (currentForumMatchId) await loadForumPosts(currentForumMatchId);
+            } catch (error) {
+                msgEl.className = "text-[11px] text-center font-medium text-rose-300 min-h-4";
+                msgEl.innerText = '无法连接后端，请确认服务已启动';
+            }
         }
 
-        // 解锁管理员面板
-        function verifyAdmin() {
+        async function applyRestriction(encodedUsername, durationHours) {
+            const username = decodeURIComponent(encodedUsername);
+            const msgEl = document.getElementById('admin-user-msg');
+            msgEl.className = "text-[11px] text-center font-medium text-[#cde6d8] min-h-4";
+            msgEl.innerText = `正在处理 ${username} 的权限限制...`;
+
+            try {
+                const res = await fetch('/admin/set_restriction', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, duration_hours: durationHours })
+                });
+                const data = await res.json();
+                msgEl.className = `text-[11px] text-center font-medium ${res.ok ? 'text-emerald-300' : 'text-rose-300'} min-h-4`;
+                msgEl.innerText = data.message || data.detail || '操作失败';
+                await loadAdminUsers();
+                if (loggedInUser === username) await loadUserStatus();
+            } catch (error) {
+                msgEl.className = "text-[11px] text-center font-medium text-rose-300 min-h-4";
+                msgEl.innerText = '无法连接后端，请确认服务已启动';
+            }
+        }
+
+        async function liftRestriction(encodedUsername) {
+            const username = decodeURIComponent(encodedUsername);
+            const msgEl = document.getElementById('admin-user-msg');
+
+            try {
+                const res = await fetch('/admin/lift_restriction', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username })
+                });
+                const data = await res.json();
+                msgEl.className = `text-[11px] text-center font-medium ${res.ok ? 'text-emerald-300' : 'text-rose-300'} min-h-4`;
+                msgEl.innerText = data.message || data.detail || '操作失败';
+                await loadAdminUsers();
+                if (loggedInUser === username) await loadUserStatus();
+            } catch (error) {
+                msgEl.className = "text-[11px] text-center font-medium text-rose-300 min-h-4";
+                msgEl.innerText = '无法连接后端，请确认服务已启动';
+            }
+        }
+
+        async function verifyAdmin() {
             const pwd = document.getElementById('admin-pwd').value;
             const msgEl = document.getElementById('admin-entry-msg');
-            fetch('/admin/verify', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({password: pwd})
-            }).then(async (res) => {
+
+            try {
+                const res = await fetch('/admin/verify', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password: pwd })
+                });
                 const data = await res.json();
                 if (!res.ok) {
                     msgEl.className = "text-xs text-center text-rose-300";
                     msgEl.innerText = data.detail;
                     return;
                 }
+
                 msgEl.className = "text-xs text-center text-emerald-300";
-                msgEl.innerText = "验证成功，正在进入后台...";
-                updateAdminButtons();
+                msgEl.innerText = '验证成功，正在进入后台...';
+                await loadMatches();
                 showDashboard('admin');
-            }).catch(() => {
+            } catch (error) {
                 msgEl.className = "text-xs text-center text-rose-300";
-                msgEl.innerText = "后台连接失败，请确认服务已启动";
-            });
+                msgEl.innerText = '后台连接失败，请确认服务已启动';
+            }
         }
 
         function updatePredictButtons() {
             const matchId = document.getElementById('match-select').value;
             const container = document.getElementById('predict-buttons-container');
-            const submitBtn = document.getElementById('submit-predict-btn'); // 👈 拿到提交按钮
-            
+            const submitBtn = document.getElementById('submit-predict-btn');
+
             container.innerHTML = '';
-            selectedPredictWinner = null; // 清空点选状态
+            selectedPredictWinner = null;
 
             if (!matchId || !globalMatches[matchId]) {
                 container.innerHTML = '<span class="text-xs text-[#7f9488]">暂无比赛选项</span>';
-                if (submitBtn) submitBtn.disabled = true;
+                submitBtn.disabled = true;
                 return;
             }
 
             const match = globalMatches[matchId];
+            const myChoice = myPredictions[matchId]?.predicted_winner;
 
-            // 🎯 核心安全锁：如果该场比赛已经有了真实赛果，直接触发熔断
-            if (match.result) {
-                // 🔍 检查当前用户对这场比赛有没有过预测
-                const myChoice = myPredictions[matchId];
-                let predictText = myChoice ? `（你的预测是：${myChoice}）` : "（你未参与这场预测）";
-
-                container.innerHTML = `<span class="text-xs text-rose-300 font-bold flex items-center gap-1">该赛事已录入真实赛果 [ ${match.result} ]，禁止作答！</span>`;
-                if (submitBtn) {
-                    submitBtn.disabled = true; // 禁用按钮
-                    submitBtn.className = "w-full rounded-xl border border-white/8 bg-white/6 text-[#6f8378] text-sm font-bold py-3.5 cursor-not-allowed";
-                    
-                    // 🎯 拼接上你的预测结果！
-                    submitBtn.innerText = `比赛已截止，无法提交 ${predictText}`;
-                }
+            if (currentUserStatus.banned) {
+                container.innerHTML = `<span class="text-xs text-rose-300 font-bold">你的账号已被封禁，解除时间：${escapeHtml(formatDateTime(currentUserStatus.ban_until))}</span>`;
+                submitBtn.disabled = true;
+                submitBtn.className = "w-full rounded-xl border border-white/8 bg-white/6 text-[#6f8378] text-sm font-bold py-3.5 cursor-not-allowed";
+                submitBtn.innerText = '当前无法提交预测';
                 return;
             }
 
-            // ✨ 如果比赛还没开奖，恢复提交按钮的阳光活力 Coral 红状态
-            if (submitBtn) {
-                submitBtn.disabled = false;
-                submitBtn.className = "btn-coral text-sm font-bold py-3.5 w-full rounded-xl cursor-pointer";
-                submitBtn.innerText = "提交预测选项";
+            if (match.is_locked) {
+                const lockedMessage = match.result
+                    ? `该赛事已录入真实赛果 [ ${match.result} ]`
+                    : `该赛事已于 ${formatDateTime(match.start_time || match.date)} 开赛，预测入口关闭`;
+                const predictText = myChoice ? `（${loggedInUser} 预测：${myChoice}）` : '（你未参与这场预测）';
+                container.innerHTML = `<span class="text-xs text-rose-300 font-bold">${escapeHtml(lockedMessage)}</span>`;
+                submitBtn.disabled = true;
+                submitBtn.className = "w-full rounded-xl border border-white/8 bg-white/6 text-[#6f8378] text-sm font-bold py-3.5 cursor-not-allowed";
+                submitBtn.innerText = `比赛已截止，无法提交 ${predictText}`;
+                return;
             }
 
-            // 渲染可选的三个按钮
-            const choices = [match.team_a, match.team_b, '平局'];
-            choices.forEach(choice => {
+            submitBtn.disabled = false;
+            submitBtn.className = "btn-coral text-sm font-bold py-3.5 w-full rounded-xl cursor-pointer";
+            submitBtn.innerText = myChoice ? `重新提交并覆盖当前预测（现在是 ${myChoice}）` : '提交预测选项';
+
+            [match.team_a, match.team_b, '平局'].forEach(choice => {
                 const btn = document.createElement('button');
                 btn.innerText = choice;
                 btn.className = "bg-black/20 border border-white/10 hover:border-lime-200/30 text-[#d4e6db] text-xs font-semibold py-3 px-4 rounded-xl flex-1 transition-all cursor-pointer text-center";
-                
+                if (choice === myChoice) {
+                    btn.classList.add('bg-lime-300', 'text-[#102014]', 'border-lime-200');
+                    btn.classList.remove('bg-black/20', 'text-[#d4e6db]', 'border-white/10');
+                    selectedPredictWinner = choice;
+                }
                 btn.onclick = () => {
-                    Array.from(container.children).forEach(b => {
-                        b.classList.remove('bg-lime-300', 'text-[#102014]', 'border-lime-200');
-                        b.classList.add('bg-black/20', 'text-[#d4e6db]', 'border-white/10');
+                    Array.from(container.children).forEach(child => {
+                        child.classList.remove('bg-lime-300', 'text-[#102014]', 'border-lime-200');
+                        child.classList.add('bg-black/20', 'text-[#d4e6db]', 'border-white/10');
                     });
                     btn.classList.remove('bg-black/20', 'text-[#d4e6db]', 'border-white/10');
                     btn.classList.add('bg-lime-300', 'text-[#102014]', 'border-lime-200');
@@ -892,15 +1259,14 @@
             });
         }
 
-        // 核心渲染：动态生成管理员开奖区的点击按钮
         function updateAdminButtons() {
             const adminSelect = document.getElementById('admin-match-select');
-            if (!adminSelect) return;
-            const matchId = adminSelect.value;
             const container = document.getElementById('admin-buttons-container');
-            if (!container) return;
+            if (!adminSelect || !container) return;
+
+            const matchId = adminSelect.value;
             container.innerHTML = '';
-            selectedAdminWinner = null; // 清空点选状态
+            selectedAdminWinner = null;
 
             if (!matchId || !globalMatches[matchId]) {
                 container.innerHTML = '<span class="text-xs text-[#7f9488]">暂无选项</span>';
@@ -908,242 +1274,471 @@
             }
 
             const match = globalMatches[matchId];
-            const choices = [match.team_a, match.team_b, '平局'];
-
-            choices.forEach(choice => {
+            [match.team_a, match.team_b, '平局'].forEach(choice => {
                 const btn = document.createElement('button');
                 btn.innerText = choice;
                 btn.className = "bg-white/5 border border-white/10 hover:border-amber-200/30 text-[#bfd1c7] text-[11px] py-2 px-2 rounded-xl flex-1 transition-all cursor-pointer text-center";
-                
                 btn.onclick = () => {
-                    // 1. 褪去其他按钮样式
-                    Array.from(container.children).forEach(b => {
-                        b.classList.remove('bg-amber-400', 'text-[#1f1605]', 'border-amber-200');
-                        b.classList.add('bg-white/5', 'text-[#bfd1c7]', 'border-white/10');
+                    Array.from(container.children).forEach(child => {
+                        child.classList.remove('bg-amber-400', 'text-[#1f1605]', 'border-amber-200');
+                        child.classList.add('bg-white/5', 'text-[#bfd1c7]', 'border-white/10');
                     });
-                    // 2. 染上管理员专属的高亮琥珀黄（Amber）
                     btn.classList.remove('bg-white/5', 'text-[#bfd1c7]', 'border-white/10');
                     btn.classList.add('bg-amber-400', 'text-[#1f1605]', 'border-amber-200');
-                    // 3. 记录选择
                     selectedAdminWinner = choice;
                 };
                 container.appendChild(btn);
             });
         }
 
-        // 获取赛事列表并同步更新全局缓存（已升级：同时喂饱三个下拉框）
         async function loadMatches() {
-            const res = await fetch('/predict/matches');
-            globalMatches = await res.json(); // 🧠 丢进全局变量缓存
-            
+            try {
+                const res = await fetch('/predict/matches');
+                globalMatches = await res.json();
+            } catch (error) {
+                console.error('加载比赛失败', error);
+                globalMatches = {};
+            }
+
             const select = document.getElementById('match-select');
             const adminSelect = document.getElementById('admin-match-select');
-            const adminDeleteSelect = document.getElementById('admin-delete-select'); // 🎯 1. 拿到新加的删除下拉框
-            
+            const adminDeleteSelect = document.getElementById('admin-delete-select');
             select.innerHTML = '';
             if (adminSelect) adminSelect.innerHTML = '';
-            if (adminDeleteSelect) adminDeleteSelect.innerHTML = ''; // 🎯 2. 记得清空旧选项，防止重复堆叠
-            
-            for (const [id, info] of Object.entries(globalMatches)) {
-                let option = document.createElement('option');
+            if (adminDeleteSelect) adminDeleteSelect.innerHTML = '';
+
+            const matchEntries = Object.entries(globalMatches);
+            if (matchEntries.length === 0) {
+                select.innerHTML = '<option value="">暂无比赛</option>';
+                if (adminSelect) adminSelect.innerHTML = '<option value="">暂无比赛</option>';
+                if (adminDeleteSelect) adminDeleteSelect.innerHTML = '<option value="">暂无比赛</option>';
+            }
+
+            matchEntries.forEach(([id, info]) => {
+                const status = info.result ? `赛果：${info.result}` : (info.is_locked ? '已开赛' : `开赛：${formatDateTime(info.start_time || info.date)}`);
+                const option = document.createElement('option');
                 option.value = id;
-                option.innerText = `${id} ${info.result ? `(赛果:${info.result})` : '(未开奖)'}`;
+                option.innerText = `${id}（${status}）`;
                 select.appendChild(option);
 
-                // —— 喂给管理员录入下拉框 ——
                 if (adminSelect) {
-                    let adminOption = document.createElement('option');
+                    const adminOption = document.createElement('option');
                     adminOption.value = id;
                     adminOption.innerText = `${id} ${info.result ? `(已结:${info.result})` : '(待开奖)'}`;
                     adminSelect.appendChild(adminOption);
                 }
 
-                // —— 🎯 3. 喂给新加的删除比赛下拉框（包含有赛果和未开奖的所有比赛） ——
                 if (adminDeleteSelect) {
-                    let deleteOption = document.createElement('option');
+                    const deleteOption = document.createElement('option');
                     deleteOption.value = id;
-                    deleteOption.innerText = `${id} ${info.result ? `(已结:${info.result})` : '(未开奖)'}`;
+                    deleteOption.innerText = `${id} ${info.result ? `(已结:${info.result})` : '(未删除)'}`;
                     adminDeleteSelect.appendChild(deleteOption);
                 }
-            }
+            });
 
-            // 💫 菜单刷新后，立刻触发一次按钮的组装与重绘
             updatePredictButtons();
             updateAdminButtons();
-
+            renderPredictionSummary();
+            await loadForumMatches();
         }
 
-        // 🗑️ 触发后端删除赛事的请求函数
+        async function loadForumMatches() {
+            try {
+                const res = await fetch('/forum/matches');
+                forumMatches = res.ok ? await res.json() : [];
+            } catch (error) {
+                forumMatches = [];
+            }
+
+            const dashboardList = document.getElementById('dashboard-forum-list');
+            const forumList = document.getElementById('forum-match-list');
+
+            if (!forumMatches.length) {
+                dashboardList.innerHTML = '<div class="text-[11px] text-[#7f9488]">管理员发布比赛后，这里会自动生成论坛分区</div>';
+                forumList.innerHTML = '<div class="text-[11px] text-[#7f9488]">当前还没有论坛分区</div>';
+                return;
+            }
+
+            const cardHtml = forumMatches.map(match => {
+                const activeClass = currentForumMatchId === match.match_id ? 'is-active' : '';
+                return `
+                    <button type="button" class="forum-entry-item text-left ${activeClass}" onclick="openForum('${encodeURIComponent(match.match_id)}')">
+                        <div class="text-sm font-semibold text-white">${escapeHtml(match.team_a)} vs ${escapeHtml(match.team_b)}</div>
+                        <div class="forum-entry-meta">开赛：${escapeHtml(formatDateTime(match.start_time || match.date))}</div>
+                        <div class="forum-entry-meta">评论 ${match.post_count || 0} 条</div>
+                    </button>
+                `;
+            }).join('');
+
+            dashboardList.innerHTML = cardHtml;
+            forumList.innerHTML = forumMatches.map(match => {
+                const activeClass = currentForumMatchId === match.match_id ? 'is-active' : '';
+                return `
+                    <button type="button" class="forum-match-item text-left ${activeClass}" onclick="openForum('${encodeURIComponent(match.match_id)}')">
+                        <div class="text-sm font-semibold text-white">${escapeHtml(match.team_a)} vs ${escapeHtml(match.team_b)}</div>
+                        <div class="forum-match-meta">开赛：${escapeHtml(formatDateTime(match.start_time || match.date))}</div>
+                        <div class="forum-match-meta">评论 ${match.post_count || 0} 条</div>
+                    </button>
+                `;
+            }).join('');
+        }
+
+        async function openForum(encodedMatchId) {
+            currentForumMatchId = decodeURIComponent(encodedMatchId);
+            forumReplyTarget = null;
+            const match = globalMatches[currentForumMatchId];
+            if (!match) return;
+
+            document.getElementById('forum-title').innerText = `${match.team_a} vs ${match.team_b}`;
+            document.getElementById('forum-subtitle').innerText = `开赛时间：${formatDateTime(match.start_time || match.date)} | 当前论坛按该比赛独立分区展示`;
+            document.getElementById('forum-post-content').value = '';
+            document.getElementById('forum-post-msg').innerText = '';
+
+            await loadForumMatches();
+            await loadForumPosts(currentForumMatchId);
+            setPage('forum');
+        }
+
+        async function loadForumPosts(matchId) {
+            const listEl = document.getElementById('forum-post-list');
+            listEl.innerHTML = '<div class="text-[11px] text-[#7f9488]">正在加载评论...</div>';
+
+            try {
+                const res = await fetch(`/forum/posts/${encodeURIComponent(matchId)}`);
+                const posts = await res.json();
+                if (!res.ok) {
+                    listEl.innerHTML = `<div class="text-[11px] text-rose-300">${escapeHtml(posts.detail || '论坛加载失败')}</div>`;
+                    return;
+                }
+
+                if (!Array.isArray(posts) || posts.length === 0) {
+                    listEl.innerHTML = '<div class="text-[11px] text-[#7f9488]">这场比赛的论坛还没有评论，来当第一个发言的人吧。</div>';
+                    return;
+                }
+
+                listEl.innerHTML = `<div class="chat-thread">${posts.map(post => renderForumBubble(post, false)).join('')}</div>`;
+            } catch (error) {
+                listEl.innerHTML = '<div class="text-[11px] text-rose-300">论坛连接失败，请确认服务已启动</div>';
+            }
+        }
+
+        function renderForumBubble(post, isReply) {
+            const isSelf = loggedInUser && post.username === loggedInUser;
+            const replies = Array.isArray(post.replies) ? post.replies : [];
+            const expanded = expandedReplyThreads[post.id];
+            const visibleReplies = replies.length >= 3 && !expanded ? [] : replies;
+            const replyToggle = replies.length >= 3 && !expanded
+                ? `<div class="chat-reply-toggle" onclick="toggleReplies(${post.id})">展开 ${replies.length} 条评论</div>`
+                : '';
+            const collapseToggle = replies.length >= 3 && expanded
+                ? `<div class="chat-reply-toggle" onclick="toggleReplies(${post.id})">收起评论</div>`
+                : '';
+
+            return `
+                <div class="${isReply ? 'ml-4' : ''}">
+                    <div class="chat-bubble ${isSelf ? 'is-self' : ''}">
+                        <div class="chat-meta">${escapeHtml(post.username)} · ${escapeHtml(formatDateTime(post.created_at))}</div>
+                        <div class="forum-post-content">${escapeHtml(post.content)}</div>
+                        <div class="chat-actions">
+                            <button class="mini-action" onclick="setReplyTarget(${post.id}, '${escapeHtml(post.username)}')">回复</button>
+                            ${activeDashboardMode === 'admin' ? `
+                                <button class="mini-action is-danger" onclick="deleteForumPost(${post.id})">删除</button>
+                                <button class="mini-action" onclick="applyRestriction('${encodeURIComponent(post.username)}', 1)">封禁1小时</button>
+                                <button class="mini-action" onclick="applyRestriction('${encodeURIComponent(post.username)}', 24)">封禁1天</button>
+                                <button class="mini-action" onclick="applyRestriction('${encodeURIComponent(post.username)}', 240)">封禁10天</button>
+                                <button class="mini-action" onclick="liftRestriction('${encodeURIComponent(post.username)}')">解封</button>
+                            ` : ''}
+                        </div>
+                        ${replyToggle}
+                        ${visibleReplies.length ? `<div class="chat-replies">${visibleReplies.map(reply => renderForumBubble(reply, true)).join('')}</div>` : ''}
+                        ${collapseToggle}
+                    </div>
+                </div>
+            `;
+        }
+
+        function toggleReplies(postId) {
+            expandedReplyThreads[postId] = !expandedReplyThreads[postId];
+            if (currentForumMatchId) loadForumPosts(currentForumMatchId);
+        }
+
+        function setReplyTarget(postId, username) {
+            forumReplyTarget = postId;
+            const msgEl = document.getElementById('forum-post-msg');
+            msgEl.className = "text-xs text-center text-[#cde6d8]";
+            msgEl.innerText = `正在回复 ${username}，发送后会挂在该主评论下方`;
+            document.getElementById('forum-post-content').focus();
+        }
+
+        async function submitForumPost() {
+            const msgEl = document.getElementById('forum-post-msg');
+            const content = document.getElementById('forum-post-content').value.trim();
+
+            if (!loggedInUser) {
+                msgEl.className = "text-xs text-center text-amber-300";
+                msgEl.innerText = '请先登录账号后再发言';
+                return;
+            }
+            if (!currentForumMatchId) {
+                msgEl.className = "text-xs text-center text-amber-300";
+                msgEl.innerText = '请先进入一个比赛论坛';
+                return;
+            }
+            if (!content) {
+                msgEl.className = "text-xs text-center text-amber-300";
+                msgEl.innerText = '请输入评论内容';
+                return;
+            }
+            if (currentUserStatus.banned) {
+                msgEl.className = "text-xs text-center text-rose-300";
+                msgEl.innerText = `你的账号已被封禁，解除时间：${formatDateTime(currentUserStatus.ban_until)}`;
+                return;
+            }
+
+            try {
+                const res = await fetch('/forum/posts', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: loggedInUser, match_id: currentForumMatchId, content, reply_to_id: forumReplyTarget })
+                });
+                const data = await res.json();
+                msgEl.className = `text-xs text-center ${res.ok ? 'text-emerald-300' : 'text-rose-300'}`;
+                msgEl.innerText = data.message || data.detail;
+                if (res.ok) {
+                    document.getElementById('forum-post-content').value = '';
+                    forumReplyTarget = null;
+                    await loadForumPosts(currentForumMatchId);
+                    await loadForumMatches();
+                }
+            } catch (error) {
+                msgEl.className = "text-xs text-center text-rose-300";
+                msgEl.innerText = '无法连接后端，请确认服务已启动';
+            }
+        }
+
+        async function deleteForumPost(postId) {
+            if (!confirm('确定要删除这条评论吗？')) return;
+            try {
+                const res = await fetch(`/forum/posts/${postId}`, { method: 'DELETE' });
+                const data = await res.json();
+                if (!res.ok) {
+                    alert(data.detail || '删除失败');
+                    return;
+                }
+                await loadForumPosts(currentForumMatchId);
+                await loadForumMatches();
+                const msgEl = document.getElementById('admin-user-msg');
+                if (msgEl) {
+                    msgEl.className = "text-[11px] text-center font-medium text-emerald-300 min-h-4";
+                    msgEl.innerText = data.message;
+                }
+            } catch (error) {
+                alert('无法连接后端，请确认服务已启动');
+            }
+        }
+
+        async function searchForumPosts(source = 'dashboard') {
+            const inputId = source === 'admin' ? 'forum-admin-search-keyword' : 'forum-search-keyword';
+            const boxId = source === 'admin' ? 'forum-admin-search-results' : 'forum-search-results';
+            const keyword = document.getElementById(inputId).value.trim();
+            const box = document.getElementById(boxId);
+
+            if (!keyword) {
+                box.innerHTML = '<div class="text-[11px] text-[#7f9488]">请输入关键词后再搜索</div>';
+                return;
+            }
+
+            box.innerHTML = '<div class="text-[11px] text-[#7f9488]">正在搜索...</div>';
+            try {
+                const res = await fetch(`/forum/search?keyword=${encodeURIComponent(keyword)}`);
+                const list = await res.json();
+                if (!res.ok) {
+                    box.innerHTML = `<div class="text-[11px] text-rose-300">${escapeHtml(list.detail || '搜索失败')}</div>`;
+                    return;
+                }
+                if (!Array.isArray(list) || list.length === 0) {
+                    box.innerHTML = '<div class="text-[11px] text-[#7f9488]">没有找到相关评论</div>';
+                    return;
+                }
+
+                box.innerHTML = list.map(item => `
+                    <div class="search-result-item">
+                        <div class="text-sm font-semibold text-white">${escapeHtml(item.username)} · ${escapeHtml(item.team_a || '')} vs ${escapeHtml(item.team_b || '')}</div>
+                        <div class="forum-post-meta">${escapeHtml(formatDateTime(item.created_at))}</div>
+                        <div class="search-result-content">${escapeHtml(item.content)}</div>
+                        <div class="mute-actions">
+                            <button class="mini-action" onclick="openForum('${encodeURIComponent(item.match_id)}')">进入该论坛</button>
+                            ${activeDashboardMode === 'admin' ? `
+                                <button class="mini-action is-danger" onclick="deleteForumPost(${item.id})">删除评论</button>
+                                <button class="mini-action" onclick="applyRestriction('${encodeURIComponent(item.username)}', 24)">封禁1天</button>
+                                <button class="mini-action" onclick="liftRestriction('${encodeURIComponent(item.username)}')">解封</button>
+                            ` : ''}
+                        </div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                box.innerHTML = '<div class="text-[11px] text-rose-300">搜索失败，请确认服务已启动</div>';
+            }
+        }
+
         async function deleteMatchFromServer() {
             const adminDeleteSelect = document.getElementById('admin-delete-select');
             const msgEl = document.getElementById('admin-delete-msg');
-            
             if (!adminDeleteSelect || !adminDeleteSelect.value) {
                 msgEl.className = "text-[11px] text-center font-medium text-amber-300 mt-1";
-                msgEl.innerText = "请先选择一场要删除的比赛！";
+                msgEl.innerText = '请先选择一场要删除的比赛';
                 return;
             }
-            
+
             const matchId = adminDeleteSelect.value;
-            
-            // 🔒 宿舍防误删安全锁
-            const userInput = confirm(`【危险操作】\n\n确定要彻底删除比赛：\n"${matchId}" 吗？\n\n这会把舍友对本场比赛的所有预测记录连带清空，且绝对无法恢复！`);
-            if (!userInput) return; // 取消就什么都不做
+            if (!confirm(`确定要彻底删除比赛 "${matchId}" 吗？这会一并删除对应预测与论坛分区下的评论。`)) return;
 
             try {
-                // 向管理员路由发起 DELETE 请求
-                const res = await fetch(`/admin/delete_match/${encodeURIComponent(matchId)}`, {
-                    method: 'DELETE'
-                });
+                const res = await fetch(`/admin/delete_match/${encodeURIComponent(matchId)}`, { method: 'DELETE' });
                 const data = await res.json();
-                
+                msgEl.className = `text-[11px] text-center font-medium mt-1 ${res.ok ? 'text-emerald-300' : 'text-rose-300'}`;
+                msgEl.innerText = data.message || data.detail || '删除失败';
                 if (res.ok) {
-                    msgEl.className = "text-[11px] text-center font-medium text-emerald-300 mt-1";
-                    msgEl.innerText = data.message;
-                    
-                    // 🔄 核心：删除成功后，重新跑一遍上方的加载函数，让所有滚轮原地刷新！
-                    await loadMatches(); 
-                    
-                    // 如果你的系统有排行榜刷新函数，顺便也叫醒它（如果没有这行可以注释掉）
-                    if (typeof loadLeaderboard === 'function') loadLeaderboard();
-                } else {
-                    msgEl.className = "text-[11px] text-center font-medium text-rose-300 mt-1";
-                    msgEl.innerText = data.detail || "删除失败！";
+                    if (currentForumMatchId === matchId) currentForumMatchId = null;
+                    await loadMatches();
+                    await loadLeaderboard();
                 }
-            } catch (e) {
+            } catch (error) {
                 msgEl.className = "text-[11px] text-center font-medium text-rose-300 mt-1";
-                msgEl.innerText = "网络请求失败，请检查后端是否正常运行！";
+                msgEl.innerText = '网络请求失败，请检查后端是否正常运行';
             }
         }
 
-        // 管理员：发布赛事
         async function adminAddMatch() {
             const ta = document.getElementById('new-team-a').value;
             const tb = document.getElementById('new-team-b').value;
             const dt = document.getElementById('new-match-date').value;
             const msg = document.getElementById('admin-msg');
-            if(!ta || !tb || !dt) return;
 
-            const res = await fetch('/admin/add_match', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({team_a: ta, team_b: tb, date: dt})
-            });
-            if(res.ok) {
-                msg.className = "text-[11px] text-center text-emerald-300";
-                msg.innerText = "比赛发布成功！";
-                // 自动清空发布框
-                document.getElementById('new-team-a').value = '';
-                document.getElementById('new-team-b').value = '';
-                document.getElementById('new-match-date').value = '';
-                await loadMatches();
-            } else {
-                const data = await res.json();
-                msg.className = "text-[11px] text-center text-rose-300";
-                msg.innerText = data.detail || "发布比赛失败！";
-            }
-        }
-
-        // 管理员：比分一键结算
-        async function adminSetResult() {
-            const mid = document.getElementById('admin-match-select').value;
-            const msg = document.getElementById('admin-msg');
-            
-            // ❌ 检查是否通过点击选择了赛果
-            if(!selectedAdminWinner) {
+            if (!ta || !tb || !dt) {
                 msg.className = "text-[11px] text-center text-amber-300";
-                msg.innerText = "请先点击选择比赛的真实胜者！";
+                msg.innerText = '请完整填写主队、客队和时间';
                 return;
             }
 
-            const res = await fetch('/admin/set_result', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({match_id: mid, result: selectedAdminWinner}) // 👈 传走点选的数据
-            });
-            const data = await res.json();
-            if(res.ok) {
-                msg.className = "text-[11px] text-center text-emerald-300";
-                msg.innerText = "赛果已结算！";
-                await loadMatches();
-                loadLeaderboard();
-            } else {
+            try {
+                const res = await fetch('/admin/add_match', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ team_a: ta, team_b: tb, date: dt })
+                });
+                const data = await res.json();
+                msg.className = `text-[11px] text-center ${res.ok ? 'text-emerald-300' : 'text-rose-300'}`;
+                msg.innerText = data.message || data.detail || '发布比赛失败';
+                if (res.ok) {
+                    document.getElementById('new-team-a').value = '';
+                    document.getElementById('new-team-b').value = '';
+                    document.getElementById('new-match-date').value = '';
+                    await loadMatches();
+                }
+            } catch (error) {
                 msg.className = "text-[11px] text-center text-rose-300";
-                msg.innerText = data.detail;
+                msg.innerText = '无法连接后端，请确认服务已启动';
             }
         }
 
-        // 用户提交预测选项
+        async function adminSetResult() {
+            const mid = document.getElementById('admin-match-select').value;
+            const msg = document.getElementById('admin-msg');
+            if (!selectedAdminWinner) {
+                msg.className = "text-[11px] text-center text-amber-300";
+                msg.innerText = '请先点击选择比赛的真实胜者';
+                return;
+            }
+
+            try {
+                const res = await fetch('/admin/set_result', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ match_id: mid, result: selectedAdminWinner })
+                });
+                const data = await res.json();
+                msg.className = `text-[11px] text-center ${res.ok ? 'text-emerald-300' : 'text-rose-300'}`;
+                msg.innerText = data.message || data.detail || '结算失败';
+                if (res.ok) {
+                    await loadMatches();
+                    await loadLeaderboard();
+                    if (currentForumMatchId) await loadForumPosts(currentForumMatchId);
+                }
+            } catch (error) {
+                msg.className = "text-[11px] text-center text-rose-300";
+                msg.innerText = '无法连接后端，请确认服务已启动';
+            }
+        }
+
         async function submitPrediction() {
             const msgEl = document.getElementById('predict-msg');
             if (!loggedInUser) {
                 msgEl.className = "text-xs text-center text-amber-300";
-                msgEl.innerText = "请先登录账号！";
+                msgEl.innerText = '请先登录账号';
                 return;
             }
-            const matchId = document.getElementById('match-select').value;
 
-            // ❌ 检查玩家有没有在按钮组里点选
+            const matchId = document.getElementById('match-select').value;
             if (!selectedPredictWinner) {
                 msgEl.className = "text-xs text-center text-amber-300";
-                msgEl.innerText = "请先点击选择你预测的胜出队伍！";
+                msgEl.innerText = '请先点击选择你预测的胜出队伍';
                 return;
             }
 
-            const res = await fetch('/predict/submit', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({username: loggedInUser, match_id: matchId, predicted_winner: selectedPredictWinner}) // 👈 传走点选的数据
-            });
-            const data = await res.json();
-            if(res.ok) {
-                msgEl.className = "text-xs text-center text-emerald-300";
-                msgEl.innerText = "预测成功！";
-
-                await loadMyPredictions(); // 🎯 预测成功立刻更新本地缓存
-                updatePredictButtons();    // 重新渲染按钮
-                loadLeaderboard();
-            } else {
+            try {
+                const res = await fetch('/predict/submit', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: loggedInUser, match_id: matchId, predicted_winner: selectedPredictWinner })
+                });
+                const data = await res.json();
+                msgEl.className = `text-xs text-center ${res.ok ? 'text-emerald-300' : 'text-rose-300'}`;
+                msgEl.innerText = data.message || data.detail || '提交失败';
+                if (res.ok) {
+                    await loadMyPredictions();
+                    await loadUserStatus();
+                    updatePredictButtons();
+                    await loadLeaderboard();
+                }
+            } catch (error) {
                 msgEl.className = "text-xs text-center text-rose-300";
-                msgEl.innerText = data.detail;
+                msgEl.innerText = '无法连接后端，请确认服务已启动';
             }
         }
 
-        // 用户注册与登录（保持不变）
         async function handleAuth(url) {
             const u = document.getElementById('username').value;
             const p = document.getElementById('password').value;
             const msgEl = document.getElementById('auth-msg');
             if (!u || !p) {
                 msgEl.className = "text-xs text-center text-amber-300";
-                msgEl.innerText = "请输入用户名和密码";
+                msgEl.innerText = '请输入用户名和密码';
                 return;
             }
 
             msgEl.className = "text-xs text-center text-[#cde6d8]";
-            msgEl.innerText = "正在处理...";
+            msgEl.innerText = '正在处理...';
 
             try {
                 const res = await fetch(url, {
                     method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({username: u, password: p})
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: u, password: p })
                 });
                 const data = await res.json();
                 if (res.ok) {
                     msgEl.className = "text-xs text-center text-emerald-300";
-                    msgEl.innerText = "注册成功！选择登录后即可进入";
+                    msgEl.innerText = '注册成功！选择登录后即可进入';
                     document.getElementById('password').value = '';
-                    setTimeout(() => {
-                        setPage('home');
-                    }, 900);
+                    setTimeout(() => setPage('home'), 900);
                 } else {
                     msgEl.className = "text-xs text-center text-rose-300";
                     msgEl.innerText = data.detail;
                 }
             } catch (error) {
                 msgEl.className = "text-xs text-center text-rose-300";
-                msgEl.innerText = "无法连接后端，请先启动服务后再注册";
+                msgEl.innerText = '无法连接后端，请先启动服务后再注册';
             }
         }
 
@@ -1151,23 +1746,22 @@
             const u = document.getElementById('username').value;
             const p = document.getElementById('password').value;
             const msgEl = document.getElementById('auth-msg');
-            if(!u || !p) {
+            if (!u || !p) {
                 msgEl.className = "text-xs text-center text-amber-300";
-                msgEl.innerText = "请输入用户名和密码";
+                msgEl.innerText = '请输入用户名和密码';
                 return;
             }
 
             msgEl.className = "text-xs text-center text-[#cde6d8]";
-            msgEl.innerText = "正在登录...";
+            msgEl.innerText = '正在登录...';
 
             try {
                 const res = await fetch('/user/login', {
                     method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({username: u, password: p})
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: u, password: p })
                 });
                 const data = await res.json();
-
                 if (!res.ok) {
                     msgEl.className = "text-xs text-center text-rose-300";
                     msgEl.innerText = data.detail;
@@ -1177,78 +1771,61 @@
                 loggedInUser = data.username;
                 document.getElementById('current-user').innerText = loggedInUser;
                 msgEl.className = "text-xs text-center text-emerald-300";
-                msgEl.innerText = "登录成功！";
+                msgEl.innerText = '登录成功！';
 
+                await loadUserStatus();
                 await loadMyPredictions();
-                updatePredictButtons();
+                await loadMatches();
+                await loadLeaderboard();
                 showDashboard('user');
             } catch (error) {
                 msgEl.className = "text-xs text-center text-rose-300";
-                msgEl.innerText = "无法连接后端，请先启动服务后再登录";
+                msgEl.innerText = '无法连接后端，请先启动服务后再登录';
             }
         }
 
-        // 🎯 切换密码可见性（勾选显示明文，取消勾选隐藏）
         function togglePassword(inputId, checkbox) {
             const passwordInput = document.getElementById(inputId);
-            if (passwordInput) {
-                passwordInput.type = checkbox.checked ? 'text' : 'password';
-            }
+            if (passwordInput) passwordInput.type = checkbox.checked ? 'text' : 'password';
         }
 
-        // 🏆 完美修复版：直接往现有的 HTML 表格躯干中填入多维度数据行
         async function loadLeaderboard() {
             try {
                 const res = await fetch('/predict/leaderboard');
-                if (!res.ok) {
-                    console.error("后端返回错误，状态码:", res.status);
-                    return;
-                }
+                if (!res.ok) return;
                 const list = await res.json();
-                
-                // 🎯 破案核心：直接定位到 HTML 表格中的 tbody 躯干
-                // 自动兼容：优先寻找表格内部的 leaderboard-body，找不到则降级找 leaderboard-box
                 const tbody = document.getElementById('leaderboard-body') || document.getElementById('leaderboard-box');
-                if (!tbody) {
-                    console.error("找不到渲染容器！请检查 HTML 表格的 <tbody> 是否加了 id='leaderboard-body'");
-                    return;
-                }
-                
-                tbody.innerHTML = '';
-                
-                // 健壮性检查：确保后端吐出的数据是一个合法数组
+                if (!tbody) return;
+
                 if (!Array.isArray(list) || list.length === 0) {
                     tbody.innerHTML = '<tr><td colspan="7" class="text-[#7f9488] text-center py-6">暂无排行数据</td></tr>';
                     return;
                 }
 
-                let rowsHtml = '';
-                list.forEach((item, index) => {
-                    // 🏅 动态计算奖牌与序号
-                    let medal = `${index + 1}.`;
-                    
-                    // 🔨 纯粹生成表格行（<tr>），无缝塞进你现有的彩色表头下方
-                    rowsHtml += `
-                        <tr class="transition-colors border-b border-white/6 last:border-b-0 hover:bg-white/4">
-                            <td class="p-3 pl-4 font-semibold text-[#dce9e1] flex items-center gap-1">
-                                <span>${medal}</span>
-                                <span class="text-white">${item.username}</span>
-                            </td>
-                            <td class="p-3 text-center font-bold text-emerald-300">${item.score}场</td>
-                            <td class="p-3 text-center text-sky-300">${item.attended_count}场</td>
-                            <td class="p-3 text-center text-[#96a79f]">${item.all_count}场</td>
-                            <td class="p-3 text-center text-amber-300">${item.unsettled_count}场</td>
-                            <td class="p-3 text-center text-fuchsia-300 font-medium">${item.accuracy_attended}</td>
-                            <td class="p-3 text-center text-orange-300 font-bold font-mono">${item.accuracy}</td>
-                        </tr>
-                    `;
-                });
-                
-                tbody.innerHTML = rowsHtml;
+                tbody.innerHTML = list.map((item, index) => `
+                    <tr class="transition-colors border-b border-white/6 last:border-b-0 hover:bg-white/4">
+                        <td class="p-3 pl-4 font-semibold text-[#dce9e1] flex items-center gap-1">
+                            <span>${index + 1}.</span>
+                            <span class="text-white">${escapeHtml(item.username)}</span>
+                        </td>
+                        <td class="p-3 text-center font-bold text-emerald-300">${item.score}场</td>
+                        <td class="p-3 text-center text-sky-300">${item.attended_count}场</td>
+                        <td class="p-3 text-center text-[#96a79f]">${item.all_count}场</td>
+                        <td class="p-3 text-center text-amber-300">${item.unsettled_count}场</td>
+                        <td class="p-3 text-center text-fuchsia-300 font-medium">${item.accuracy_attended}</td>
+                        <td class="p-3 text-center text-orange-300 font-bold font-mono">${item.accuracy}</td>
+                    </tr>
+                `).join('');
             } catch (error) {
-                console.error("排行榜渲染发生异常:", error);
+                console.error('排行榜渲染发生异常:', error);
             }
         }
+
+        window.onload = async function() {
+            setPage('home');
+            await loadMatches();
+            await loadLeaderboard();
+        };
     </script>
 </body>
 </html>
