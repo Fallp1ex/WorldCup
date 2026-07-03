@@ -103,6 +103,9 @@ class RestrictionModel(BaseModel):
 class LiftRestrictionModel(BaseModel):
     username: str
 
+class UserApprovalModel(BaseModel):
+    username: str
+
 @router.get("/users")
 def list_users():
     users = []
@@ -113,6 +116,7 @@ def list_users():
             "ip": info.get("ip", ""),
             "created_at": info.get("created_at"),
             "last_login_ip": info.get("last_login_ip"),
+            "approval_status": info.get("approval_status", "pending"),
             "banned": banned,
             "ban_until": ban_until.isoformat(timespec="seconds") if ban_until else None
         })
@@ -151,6 +155,40 @@ def verify_admin(data: AdminAuthModel):
     database.log_event("admin_verify", "管理员验证成功", actor="admin")
     database.save_to_disk()
     return {"message": "管理员验证成功"}
+
+@router.post("/approve_user")
+def approve_user(data: UserApprovalModel):
+    username = data.username.strip()
+    if username not in database.USER_DATABASE:
+        raise HTTPException(status_code=404, detail="找不到该用户")
+
+    database.USER_DATABASE[username]["approval_status"] = "approved"
+    database.log_event("user_approve", f"管理员同意用户 {username} 登录", actor="admin")
+    database.save_to_disk()
+    return {"message": f"已同意 {username} 的注册申请"}
+
+@router.post("/reject_user")
+def reject_user(data: UserApprovalModel):
+    username = data.username.strip()
+    if username not in database.USER_DATABASE:
+        raise HTTPException(status_code=404, detail="找不到该用户")
+
+    user_info = database.USER_DATABASE.pop(username)
+    user_ip = user_info.get("ip")
+    if user_ip:
+        still_used = any(info.get("ip") == user_ip for info in database.USER_DATABASE.values())
+        if not still_used and user_ip in database.REGISTERED_IPS:
+            database.REGISTERED_IPS.remove(user_ip)
+
+    database.PREDICTIONS_DATABASE = [
+        p for p in database.PREDICTIONS_DATABASE if p["username"] != username
+    ]
+    database.FORUM_POSTS_DATABASE = [
+        post for post in database.FORUM_POSTS_DATABASE if post["username"] != username
+    ]
+    database.log_event("user_reject", f"管理员拒绝用户 {username} 的注册申请并删除数据", actor="admin")
+    database.save_to_disk()
+    return {"message": f"已拒绝 {username} 的注册申请"}
 
 @router.post("/add_match")
 def add_match(match: AddMatchModel):

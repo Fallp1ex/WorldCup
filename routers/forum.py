@@ -30,7 +30,13 @@ def forum_posts(match_id: str):
         raise HTTPException(status_code=404, detail="找不到对应比赛论坛")
 
     posts = [post for post in database.FORUM_POSTS_DATABASE if post["match_id"] == match_id]
-    post_map = {post["id"]: {**post, "replies": []} for post in posts}
+    raw_map = {post["id"]: post for post in posts}
+    post_map = {}
+    for post in posts:
+        item = {**post, "replies": []}
+        parent = raw_map.get(post.get("reply_to_id"))
+        item["reply_to_username"] = parent.get("username") if parent else None
+        post_map[post["id"]] = item
     roots = []
     for post in sorted(posts, key=lambda item: item.get("created_at", "")):
         reply_to_id = post.get("reply_to_id")
@@ -111,11 +117,13 @@ def search_forum_posts(keyword: str = ""):
     for post in database.FORUM_POSTS_DATABASE:
         if query in post["content"].lower() or query in post["username"].lower():
             match = database.MATCHES_DATABASE.get(post["match_id"], {})
+            parent = next((p for p in database.FORUM_POSTS_DATABASE if p["id"] == post.get("reply_to_id")), None)
             results.append({
                 **post,
                 "team_a": match.get("team_a"),
                 "team_b": match.get("team_b"),
-                "date": match.get("date")
+                "date": match.get("date"),
+                "reply_to_username": parent.get("username") if parent else None
             })
     results.sort(key=lambda item: item.get("created_at", ""), reverse=True)
     return results

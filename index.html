@@ -469,7 +469,7 @@
         .forum-post-content,
         .search-result-content {
             margin-top: 8px;
-            color: #eaf7ef;
+            color: inherit;
             line-height: 1.7;
             font-size: 14px;
             white-space: pre-wrap;
@@ -512,52 +512,118 @@
             border-color: rgba(255, 107, 107, 0.34);
         }
 
+        .mini-action.chat-reply-btn {
+            background: rgba(255, 255, 255, 0.82);
+            border-color: rgba(16, 32, 20, 0.1);
+            color: #17351f;
+            font-weight: 800;
+            box-shadow: 0 2px 10px rgba(16, 32, 20, 0.08);
+        }
+
+        .mini-action.chat-reply-btn:hover {
+            background: #ffffff;
+            border-color: rgba(16, 32, 20, 0.16);
+        }
+
         .chat-thread {
             display: flex;
             flex-direction: column;
             gap: 12px;
         }
 
+        .chat-row {
+            display: flex;
+            width: 100%;
+        }
+
+        .chat-row.is-self {
+            justify-content: flex-end;
+        }
+
+        .chat-row.is-other {
+            justify-content: flex-start;
+        }
+
         .chat-bubble {
-            max-width: 82%;
-            border-radius: 20px;
-            padding: 12px 14px;
-            background: rgba(255, 255, 255, 0.06);
-            border: 1px solid rgba(255, 255, 255, 0.08);
+            position: relative;
+            display: inline-block;
+            width: fit-content;
+            max-width: 62%;
+            border-radius: 14px;
+            padding: 8px 12px;
+            background: #ffffff;
+            color: #102014;
+            box-shadow: 0 8px 20px rgba(9, 18, 14, 0.08);
         }
 
         .chat-bubble.is-self {
-            margin-left: auto;
-            background: rgba(200, 255, 101, 0.12);
-            border-color: rgba(200, 255, 101, 0.18);
+            background: linear-gradient(135deg, #9cf09b 0%, #91ea8f 100%);
+            color: #102014;
+        }
+
+        .chat-bubble.is-reply {
+            background: linear-gradient(135deg, #9cf09b 0%, #91ea8f 100%);
+        }
+
+        .chat-bubble::after {
+            content: "";
+            position: absolute;
+            top: 14px;
+            width: 10px;
+            height: 10px;
+            background: inherit;
+        }
+
+        .chat-bubble.is-self::after {
+            right: -7px;
+            clip-path: polygon(0 0, 100% 50%, 0 100%);
+        }
+
+        .chat-bubble.is-other::after,
+        .chat-bubble.is-reply::after {
+            left: -7px;
+            clip-path: polygon(100% 0, 0 50%, 100% 100%);
         }
 
         .chat-meta {
             font-size: 11px;
-            color: #91a79b;
+            color: rgba(16, 32, 20, 0.58);
+            margin-bottom: 1px;
         }
 
         .chat-actions {
             display: flex;
             gap: 8px;
-            margin-top: 8px;
+            margin-top: 4px;
             flex-wrap: wrap;
+        }
+
+        .chat-row {
+            display: flex;
+        }
+
+        .chat-row.is-self {
+            justify-content: flex-end;
         }
 
         .chat-replies {
             margin-top: 10px;
-            padding-left: 12px;
-            border-left: 1px solid rgba(255, 255, 255, 0.08);
+            padding-left: 18px;
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 12px;
         }
 
         .chat-reply-toggle {
-            margin-top: 8px;
+            margin-top: 6px;
             font-size: 12px;
-            color: #9eb5aa;
+            color: rgba(16, 32, 20, 0.55);
             cursor: pointer;
+        }
+
+        .reply-prefix {
+            color: #0a5723;
+            font-weight: 900;
         }
 
         @keyframes fadeUp {
@@ -788,7 +854,16 @@
                         </div>
                         <button id="submit-predict-btn" onclick="submitPrediction()" class="btn-coral text-sm font-bold py-3.5 w-full rounded-xl cursor-pointer">提交预测选项</button>
                         <div id="predict-msg" class="text-xs text-center font-medium min-h-4"></div>
-                        <div class="panel-soft p-4 space-y-3">
+                        <div id="admin-approval-panel" class="panel-soft p-4 space-y-3 hidden">
+                            <div class="flex items-center justify-between gap-3">
+                                <div class="text-xs font-bold tracking-[0.18em] text-[#ffd66b] uppercase">Pending Users</div>
+                                <div class="text-[11px] text-[#9eb5aa]">管理员审核后用户才能登录</div>
+                            </div>
+                            <div id="admin-pending-user-list" class="prediction-list">
+                                <div class="text-[11px] text-[#7f9488]">当前没有待审核用户</div>
+                            </div>
+                        </div>
+                        <div id="my-prediction-panel" class="panel-soft p-4 space-y-3">
                             <div class="flex items-center justify-between gap-3">
                                 <div class="text-xs font-bold tracking-[0.18em] text-[#dfffb0] uppercase">My Prediction</div>
                                 <div class="text-[11px] text-[#9eb5aa]">你的选择会记录在这里</div>
@@ -918,6 +993,11 @@
             return user.banned ? `已封禁至 ${formatDateTime(user.ban_until)}` : '权限正常';
         }
 
+        function getApprovalText(user) {
+            if (user.approval_status === 'approved') return '已通过审核';
+            return '待管理员审核';
+        }
+
         function setPage(pageName) {
             document.querySelectorAll('.page-screen').forEach(section => section.classList.remove('is-active'));
             const target = document.getElementById(`page-${pageName}`);
@@ -954,17 +1034,23 @@
             const adminTools = document.getElementById('dashboard-admin-tools');
             const forumAdminPanel = document.getElementById('forum-admin-panel');
             const composeBox = document.getElementById('forum-compose-box');
+            const adminApprovalPanel = document.getElementById('admin-approval-panel');
+            const myPredictionPanel = document.getElementById('my-prediction-panel');
 
             if (mode === 'admin') {
                 adminTools.classList.add('is-visible');
                 forumAdminPanel.classList.add('is-visible');
                 composeBox.classList.add('hidden');
+                adminApprovalPanel.classList.remove('hidden');
+                myPredictionPanel.classList.add('hidden');
                 document.getElementById('current-user').innerText = '管理员';
                 loadAdminUsers();
             } else {
                 adminTools.classList.remove('is-visible');
                 forumAdminPanel.classList.remove('is-visible');
                 composeBox.classList.remove('hidden');
+                adminApprovalPanel.classList.add('hidden');
+                myPredictionPanel.classList.remove('hidden');
                 document.getElementById('current-user').innerText = loggedInUser || '未登录（游客）';
             }
 
@@ -1054,7 +1140,11 @@
         async function loadAdminUsers() {
             const listEl = document.getElementById('admin-user-list');
             const msgEl = document.getElementById('admin-user-msg');
+            const pendingListEl = document.getElementById('admin-pending-user-list');
             listEl.innerHTML = '<div class="text-[11px] text-[#7f9488]">正在加载用户列表...</div>';
+            if (pendingListEl) {
+                pendingListEl.innerHTML = '<div class="text-[11px] text-[#7f9488]">正在加载待审核用户...</div>';
+            }
             msgEl.innerText = '';
 
             try {
@@ -1070,7 +1160,25 @@
 
                 if (!Array.isArray(data) || data.length === 0) {
                     listEl.innerHTML = '<div class="text-[11px] text-[#7f9488]">当前还没有注册用户</div>';
+                    if (pendingListEl) {
+                        pendingListEl.innerHTML = '<div class="text-[11px] text-[#7f9488]">当前没有待审核用户</div>';
+                    }
                     return;
+                }
+
+                const pendingUsers = data.filter(user => user.approval_status !== 'approved');
+                if (pendingListEl) {
+                    pendingListEl.innerHTML = pendingUsers.length ? pendingUsers.map(user => `
+                        <div class="prediction-item">
+                            <div class="text-sm font-semibold text-white">${escapeHtml(user.username)}</div>
+                            <div class="prediction-meta">注册时间：${escapeHtml(formatDateTime(user.created_at))}</div>
+                            <div class="prediction-meta">注册 IP：${escapeHtml(user.ip || '未知')}</div>
+                            <div class="mute-actions mt-3">
+                                <button class="mini-action" onclick="approveUser('${encodeURIComponent(user.username)}')">同意注册</button>
+                                <button class="mini-action is-danger" onclick="rejectUser('${encodeURIComponent(user.username)}')">拒绝注册</button>
+                            </div>
+                        </div>
+                    `).join('') : '<div class="text-[11px] text-[#7f9488]">当前没有待审核用户</div>';
                 }
 
                 listEl.innerHTML = data.map(user => `
@@ -1079,7 +1187,14 @@
                             <div class="text-sm font-semibold text-white">${escapeHtml(user.username)}</div>
                             <div class="admin-user-meta">注册 IP：${escapeHtml(user.ip || '未知')}</div>
                             <div class="admin-user-meta">最近登录 IP：${escapeHtml(user.last_login_ip || '暂无')}</div>
+                            <div class="admin-user-meta">注册状态：${escapeHtml(getApprovalText(user))}</div>
                             <div class="admin-user-meta">${escapeHtml(getRestrictionText(user))}</div>
+                            ${user.approval_status !== 'approved' ? `
+                                <div class="mute-actions">
+                                    <button class="mini-action" onclick="approveUser('${encodeURIComponent(user.username)}')">同意注册</button>
+                                    <button class="mini-action is-danger" onclick="rejectUser('${encodeURIComponent(user.username)}')">拒绝注册</button>
+                                </div>
+                            ` : ''}
                             <div class="mute-actions">
                                 <button class="mini-action" onclick="applyRestriction('${encodeURIComponent(user.username)}', 1)">封禁 1 小时</button>
                                 <button class="mini-action" onclick="applyRestriction('${encodeURIComponent(user.username)}', 24)">封禁 1 天</button>
@@ -1142,6 +1257,48 @@
                 msgEl.innerText = data.message || data.detail || '操作失败';
                 await loadAdminUsers();
                 if (loggedInUser === username) await loadUserStatus();
+            } catch (error) {
+                msgEl.className = "text-[11px] text-center font-medium text-rose-300 min-h-4";
+                msgEl.innerText = '无法连接后端，请确认服务已启动';
+            }
+        }
+
+        async function approveUser(encodedUsername) {
+            const username = decodeURIComponent(encodedUsername);
+            const msgEl = document.getElementById('admin-user-msg');
+            try {
+                const res = await fetch('/admin/approve_user', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username })
+                });
+                const data = await res.json();
+                msgEl.className = `text-[11px] text-center font-medium ${res.ok ? 'text-emerald-300' : 'text-rose-300'} min-h-4`;
+                msgEl.innerText = data.message || data.detail || '审核失败';
+                await loadAdminUsers();
+            } catch (error) {
+                msgEl.className = "text-[11px] text-center font-medium text-rose-300 min-h-4";
+                msgEl.innerText = '无法连接后端，请确认服务已启动';
+            }
+        }
+
+        async function rejectUser(encodedUsername) {
+            const username = decodeURIComponent(encodedUsername);
+            const msgEl = document.getElementById('admin-user-msg');
+            if (!confirm(`确定拒绝 ${username} 的注册申请吗？拒绝后会删除该用户注册数据。`)) return;
+
+            try {
+                const res = await fetch('/admin/reject_user', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username })
+                });
+                const data = await res.json();
+                msgEl.className = `text-[11px] text-center font-medium ${res.ok ? 'text-emerald-300' : 'text-rose-300'} min-h-4`;
+                msgEl.innerText = data.message || data.detail || '处理失败';
+                await loadAdminUsers();
+                await loadLeaderboard();
+                await loadForumMatches();
             } catch (error) {
                 msgEl.className = "text-[11px] text-center font-medium text-rose-300 min-h-4";
                 msgEl.innerText = '无法连接后端，请确认服务已启动';
@@ -1434,13 +1591,20 @@
                 ? `<div class="chat-reply-toggle" onclick="toggleReplies(${post.id})">收起评论</div>`
                 : '';
 
+            const replyPrefix = post.reply_to_username
+                ? `<span class="reply-prefix">@${escapeHtml(post.reply_to_username)}：</span>`
+                : '';
+            const displayName = isSelf ? '你' : post.username;
+            const bubbleClass = isReply ? 'is-reply' : (isSelf ? 'is-self' : 'is-other');
+            const rowClass = isSelf && !isReply ? 'is-self' : 'is-other';
+
             return `
-                <div class="${isReply ? 'ml-4' : ''}">
-                    <div class="chat-bubble ${isSelf ? 'is-self' : ''}">
-                        <div class="chat-meta">${escapeHtml(post.username)} · ${escapeHtml(formatDateTime(post.created_at))}</div>
-                        <div class="forum-post-content">${escapeHtml(post.content)}</div>
+                <div class="chat-row ${rowClass} ${isReply ? 'pl-4' : ''}">
+                    <div class="chat-bubble ${bubbleClass}">
+                        <div class="chat-meta">${escapeHtml(displayName)} · ${escapeHtml(formatDateTime(post.created_at))}</div>
+                        <div class="forum-post-content">${replyPrefix}${escapeHtml(post.content)}</div>
                         <div class="chat-actions">
-                            <button class="mini-action" onclick="setReplyTarget(${post.id}, '${escapeHtml(post.username)}')">回复</button>
+                            <button class="mini-action chat-reply-btn" onclick="setReplyTarget(${post.id}, '${escapeHtml(post.username)}')">回复</button>
                             ${activeDashboardMode === 'admin' ? `
                                 <button class="mini-action is-danger" onclick="deleteForumPost(${post.id})">删除</button>
                                 <button class="mini-action" onclick="applyRestriction('${encodeURIComponent(post.username)}', 1)">封禁1小时</button>
@@ -1565,7 +1729,7 @@
                     <div class="search-result-item">
                         <div class="text-sm font-semibold text-white">${escapeHtml(item.username)} · ${escapeHtml(item.team_a || '')} vs ${escapeHtml(item.team_b || '')}</div>
                         <div class="forum-post-meta">${escapeHtml(formatDateTime(item.created_at))}</div>
-                        <div class="search-result-content">${escapeHtml(item.content)}</div>
+                        <div class="search-result-content">${item.reply_to_username ? `<span class="font-bold">@${escapeHtml(item.reply_to_username)}：</span>` : ''}${escapeHtml(item.content)}</div>
                         <div class="mute-actions">
                             <button class="mini-action" onclick="openForum('${encodeURIComponent(item.match_id)}')">进入该论坛</button>
                             ${activeDashboardMode === 'admin' ? `
@@ -1729,7 +1893,7 @@
                 const data = await res.json();
                 if (res.ok) {
                     msgEl.className = "text-xs text-center text-emerald-300";
-                    msgEl.innerText = '注册成功！选择登录后即可进入';
+                    msgEl.innerText = '注册成功，请联系管理员登录';
                     document.getElementById('password').value = '';
                     setTimeout(() => setPage('home'), 900);
                 } else {

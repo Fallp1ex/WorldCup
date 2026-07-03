@@ -26,15 +26,16 @@ def register(user_data: UserModel, request: Request):
         "password": password,
         "ip": client_ip,
         "created_at": database.now_iso(),
+        "approval_status": "pending",
         "restrictions": {
             "ban_until": None
         }
     }
     database.REGISTERED_IPS.add(client_ip)
 
-    database.log_event("user_register", f"用户 {username} 注册成功", actor=username)
+    database.log_event("user_register", f"用户 {username} 注册成功，等待管理员审核", actor=username)
     database.save_to_disk()
-    return {"message": "注册成功！"}
+    return {"message": "注册成功，请联系管理员登录"}
 
 @router.post("/login")
 def login(user_data: UserModel, request: Request):
@@ -47,6 +48,8 @@ def login(user_data: UserModel, request: Request):
     user_record = database.USER_DATABASE[username]
     if user_record.get("password") != password:
         raise HTTPException(status_code=400, detail="密码错误，请重新输入")
+    if user_record.get("approval_status") != "approved":
+        raise HTTPException(status_code=403, detail="该账号尚未通过管理员审核，请联系管理员登录")
 
     user_record["last_login_ip"] = request.client.host
     database.ensure_user_restrictions(username)
@@ -55,7 +58,8 @@ def login(user_data: UserModel, request: Request):
     return {
         "message": "登录成功！",
         "username": username,
-        "restrictions": user_record.get("restrictions", {})
+        "restrictions": user_record.get("restrictions", {}),
+        "approval_status": user_record.get("approval_status", "pending")
     }
 
 @router.get("/status/{username}")
@@ -68,5 +72,6 @@ def user_status(username: str):
     return {
         "username": username,
         "banned": predict_blocked,
-        "ban_until": predict_until.isoformat(timespec="seconds") if predict_until else None
+        "ban_until": predict_until.isoformat(timespec="seconds") if predict_until else None,
+        "approval_status": database.USER_DATABASE[username].get("approval_status", "pending")
     }
